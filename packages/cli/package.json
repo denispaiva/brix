@@ -1,0 +1,11 @@
+{
+  "name": "@brix/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "brix": "./bin/brix.js"
+  },
+  "scripts": {
+    "start": "node ./bin/brix.js"
+  }
+}
