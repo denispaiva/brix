@@ -16,7 +16,7 @@ if (command === 'tool' && subCommand === 'score') {
     console.error('❌ Error: Debes especificar el paquete. Ejemplo: brix tool score zod');
     process.exit(1);
   }
-  const evaluatorPath = path.resolve('vc/tooling/scripts/score-evaluator.js');
+  const evaluatorPath = path.resolve('vc/brix/packages/cli/scripts/score-evaluator.js');
   try {
     execSync(`node "${evaluatorPath}" "${target}"`, { stdio: 'inherit' });
   } catch (error) {
