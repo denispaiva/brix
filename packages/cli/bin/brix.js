@@ -3,6 +3,7 @@
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 import { generateSpec } from '../src/commands/idea.js';
+import { runGraduate } from '../src/commands/graduate.js';
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -23,6 +24,9 @@ if (command === 'tool' && subCommand === 'score') {
 } else if (command === 'idea') {
   const filePath = subCommand;
   await generateSpec(filePath);
+} else if (command === 'graduate') {
+  const pkgPath = subCommand || 'vc/brix';
+  await runGraduate(pkgPath);
 } else {
   console.log(`
 🔨 Brix CLI — Vibe Coding Governance OS (v0.1.0)
@@ -30,6 +34,6 @@ if (command === 'tool' && subCommand === 'score') {
 Comandos disponibles:
   brix tool score <pkg>    Evalúa una herramienta mediante Gemini API y genera JSON
   brix idea <archivo.md>   Convierte notas informales en SPEC.md ejecutable
-  brix graduate            Prepara la extracción a repositorio independiente
+  brix graduate [path]     Extrae una subcarpeta mediante git subtree para su graduación
   `);
 }
