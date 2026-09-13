@@ -1,5 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// Directorio propio de este script (vc/brix/packages/cli/scripts/), no el
+// cwd del proceso. La matriz viaja empaquetada junto al evaluador, así que
+// se resuelve contra esta ruta para que funcione invocado desde cualquier
+// directorio (global, npx, o subproceso de bin/brix.js).
+const packageScriptsDir = fileURLToPath(new URL('.', import.meta.url));
 
 const apiKey = process.env.GEMINI_API_KEY;
 const targetTool = process.argv[2];
@@ -14,7 +21,7 @@ if (!targetTool) {
   process.exit(1);
 }
 
-const matrixPath = path.resolve('vc/brix/packages/cli/scoring/matrix.md');
+const matrixPath = path.resolve(packageScriptsDir, '..', 'scoring', 'matrix.md');
 if (!fs.existsSync(matrixPath)) {
   console.error(`❌ Error: No se encontró la matriz en ${matrixPath}`);
   process.exit(1);
