@@ -9,12 +9,16 @@ export async function runGraduate(targetPkg, options = {}) {
   const resolvedTargetPkg = targetPkg || options.defaultPath;
   if (!resolvedTargetPkg) {
     console.error('❌ Error: Falta la carpeta a graduar.');
-    console.error('   Pasala como argumento (brix graduate <path>) o declarala');
+    console.error(
+      '   Pasala como argumento (brix graduate <path>) o declarala',
+    );
     console.error('   en graduate.defaultPath dentro de brix.config.json.');
     process.exit(1);
   }
 
-  console.log(`🎓 Iniciando protocolo de graduación para "${resolvedTargetPkg}"...`);
+  console.log(
+    `🎓 Iniciando protocolo de graduación para "${resolvedTargetPkg}"...`,
+  );
 
   const fullPath = path.resolve(resolvedTargetPkg);
   if (!fs.existsSync(fullPath)) {
@@ -28,8 +32,13 @@ export async function runGraduate(targetPkg, options = {}) {
   const remote = options.remote;
 
   try {
-    console.log(`📦 Creando subtree split de '${resolvedTargetPkg}' en la rama '${branchName}'...`);
-    execSync(`git subtree split --prefix=${resolvedTargetPkg} -b ${branchName}`, { stdio: 'inherit' });
+    console.log(
+      `📦 Creando subtree split de '${resolvedTargetPkg}' en la rama '${branchName}'...`,
+    );
+    execSync(
+      `git subtree split --prefix=${resolvedTargetPkg} -b ${branchName}`,
+      { stdio: 'inherit' },
+    );
 
     console.log(`✅ Subtree split generado exitosamente.`);
     if (remote) {
@@ -38,7 +47,9 @@ export async function runGraduate(targetPkg, options = {}) {
     } else {
       console.log(`🚀 Para transferir a un repo independiente ejecuta:`);
       console.log(`   git push <git-url-destino> ${branchName}:main`);
-      console.log(`   (fijá el destino con --remote o con graduate.remote en brix.config.json)`);
+      console.log(
+        `   (fijá el destino con --remote o con graduate.remote en brix.config.json)`,
+      );
     }
   } catch (err) {
     console.error(`❌ Falló la graduación: ${err.message}`);

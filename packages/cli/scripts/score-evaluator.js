@@ -16,16 +16,23 @@ const targetTool = positional[0];
 const config = loadConfig(process.cwd());
 
 if (!apiKey) {
-  console.error("❌ Error: GEMINI_API_KEY no está definida en el entorno.");
+  console.error('❌ Error: GEMINI_API_KEY no está definida en el entorno.');
   process.exit(1);
 }
 
 if (!targetTool) {
-  console.error("❌ Uso: node <ruta>/scripts/score-evaluator.js <nombre-del-paquete-o-repo> [--outDir <dir>]");
+  console.error(
+    '❌ Uso: node <ruta>/scripts/score-evaluator.js <nombre-del-paquete-o-repo> [--outDir <dir>]',
+  );
   process.exit(1);
 }
 
-const matrixPath = path.resolve(packageScriptsDir, '..', 'scoring', 'matrix.md');
+const matrixPath = path.resolve(
+  packageScriptsDir,
+  '..',
+  'scoring',
+  'matrix.md',
+);
 if (!fs.existsSync(matrixPath)) {
   console.error(`❌ Error: No se encontró la matriz en ${matrixPath}`);
   process.exit(1);
@@ -62,8 +69,10 @@ Devuelve ÚNICAMENTE un objeto JSON válido (sin bloques de código markdown, si
 `;
 
 async function evaluate() {
-  console.log(`🔍 Evaluando "${targetTool}" usando Gemini API (gemini-3.6-flash)...`);
-  
+  console.log(
+    `🔍 Evaluando "${targetTool}" usando Gemini API (gemini-3.6-flash)...`,
+  );
+
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
   try {
@@ -72,8 +81,8 @@ async function evaluate() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json" }
-      })
+        generationConfig: { responseMimeType: 'application/json' },
+      }),
     });
 
     if (!response.ok) {
@@ -83,14 +92,16 @@ async function evaluate() {
 
     const data = await response.json();
     const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    
+
     const jsonResult = JSON.parse(resultText);
-    
+
     // La evaluación es un dato del proyecto que invoca al CLI, no del paquete:
     // se escribe cwd-relativa, nunca dentro del propio @brix/cli instalado.
     // Precedencia: --outDir > score.outputDir del config > convención vc/.
     const outputDir = path.resolve(
-      flags.outDir || config.score?.outputDir || 'vc/tooling/scoring/evaluations'
+      flags.outDir ||
+        config.score?.outputDir ||
+        'vc/tooling/scoring/evaluations',
     );
     fs.mkdirSync(outputDir, { recursive: true });
 
@@ -100,11 +111,12 @@ async function evaluate() {
     fs.writeFileSync(outputPath, JSON.stringify(jsonResult, null, 2));
 
     console.log(`✅ Evaluación completada con éxito.`);
-    console.log(`📊 Total Score: ${jsonResult.totalScore}/100 | Veredicto: ${jsonResult.verdict}`);
+    console.log(
+      `📊 Total Score: ${jsonResult.totalScore}/100 | Veredicto: ${jsonResult.verdict}`,
+    );
     console.log(`📄 Reporte guardado en: ${outputPath}`);
-
   } catch (error) {
-    console.error("❌ Falló la evaluación:", error.message);
+    console.error('❌ Falló la evaluación:', error.message);
     process.exit(1);
   }
 }

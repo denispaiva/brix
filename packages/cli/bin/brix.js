@@ -23,15 +23,24 @@ const config = loadConfig(process.cwd());
 
 if (command === 'tool' && subCommand === 'score') {
   if (!target) {
-    console.error('❌ Error: Debes especificar el paquete. Ejemplo: brix tool score zod');
+    console.error(
+      '❌ Error: Debes especificar el paquete. Ejemplo: brix tool score zod',
+    );
     process.exit(1);
   }
-  const evaluatorPath = path.resolve(packageBinDir, '..', 'scripts', 'score-evaluator.js');
+  const evaluatorPath = path.resolve(
+    packageBinDir,
+    '..',
+    'scripts',
+    'score-evaluator.js',
+  );
   // El evaluador corre como subproceso y lee su propia configuración; solo se
   // le reenvían los flags explícitos de esta invocación.
   const forwarded = flags.outDir ? ` --outDir "${flags.outDir}"` : '';
   try {
-    execSync(`node "${evaluatorPath}" "${target}"${forwarded}`, { stdio: 'inherit' });
+    execSync(`node "${evaluatorPath}" "${target}"${forwarded}`, {
+      stdio: 'inherit',
+    });
   } catch (error) {
     process.exit(1);
   }

@@ -5,7 +5,7 @@ const apiKey = process.env.GEMINI_API_KEY;
 
 export async function generateSpec(inputFile, options = {}) {
   if (!apiKey) {
-    console.error("❌ Error: GEMINI_API_KEY no está definida.");
+    console.error('❌ Error: GEMINI_API_KEY no está definida.');
     process.exit(1);
   }
 
@@ -14,7 +14,9 @@ export async function generateSpec(inputFile, options = {}) {
   const resolvedPath = path.resolve(rawPath);
 
   if (!fs.existsSync(resolvedPath)) {
-    console.error(`❌ Error: No se encontró el archivo de notas en ${resolvedPath}`);
+    console.error(
+      `❌ Error: No se encontró el archivo de notas en ${resolvedPath}`,
+    );
     process.exit(1);
   }
 
@@ -49,19 +51,23 @@ Devuelve ÚNICAMENTE el contenido del archivo SPEC.md en formato Markdown con la
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
-      })
+        contents: [{ parts: [{ text: prompt }] }],
+      }),
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP Error ${response.status}: ${await response.text()}`);
+      throw new Error(
+        `HTTP Error ${response.status}: ${await response.text()}`,
+      );
     }
 
     const data = await response.json();
     const specText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     // Sin --outDir, SPEC.md se escribe junto al archivo de notas de entrada.
-    const outputDir = options.outDir ? path.resolve(options.outDir) : path.dirname(resolvedPath);
+    const outputDir = options.outDir
+      ? path.resolve(options.outDir)
+      : path.dirname(resolvedPath);
     const outputPath = path.join(outputDir, 'SPEC.md');
 
     fs.mkdirSync(outputDir, { recursive: true });
@@ -69,9 +75,8 @@ Devuelve ÚNICAMENTE el contenido del archivo SPEC.md en formato Markdown con la
 
     console.log(`✅ Especificación generada con éxito.`);
     console.log(`📄 Guardado en: ${outputPath}`);
-
   } catch (error) {
-    console.error("❌ Falló la generación de la spec:", error.message);
+    console.error('❌ Falló la generación de la spec:', error.message);
     process.exit(1);
   }
 }

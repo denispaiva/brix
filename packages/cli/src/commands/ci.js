@@ -9,7 +9,9 @@ export async function generateCiWorkflow(options = {}) {
 
   fs.mkdirSync(workflowDir, { recursive: true });
 
-  const watchPaths = options.watchPaths?.length ? options.watchPaths : ['vc/**', 'ideas/**'];
+  const watchPaths = options.watchPaths?.length
+    ? options.watchPaths
+    : ['vc/**', 'ideas/**'];
   // Ruta al binario dentro del repo destino: en blends el paquete está
   // anidado en vc/brix/, en un repo graduado cuelga de la raíz.
   const entrypoint = options.entrypoint || 'vc/brix/packages/cli/bin/brix.js';
