@@ -7,6 +7,12 @@ subcarpetas de un monorepo a repos independientes y genera el workflow de CI.
 El nombre viene de los grados Brix: la medida del azúcar en el mosto que
 anticipa la calidad del vino antes de la cosecha.
 
+> **Este repositorio es un espejo de solo lectura.** La fuente de verdad de
+> Brix es `vc/brix/` dentro del monorepo privado `denispaiva/blends`. Los
+> cambios se hacen allá y llegan acá con `git subtree split`. Un commit hecho
+> directamente en este repo hace que el próximo push del espejo sea rechazado,
+> hasta descartarlo.
+
 ## Requisitos
 
 - Node.js 26 o superior.
@@ -15,14 +21,17 @@ anticipa la calidad del vino antes de la cosecha.
 
 ## Instalación
 
-```bash
-npm install --global @denispaiva/brix-cli
-```
-
-O sin instalar, desde un clon de este repo:
+Brix no se publica en npm. Se usa desde un clon de este repo:
 
 ```bash
 node packages/cli/bin/brix.js
+```
+
+Para tener el comando `brix` disponible en cualquier directorio, instalalo
+desde el clon:
+
+```bash
+npm install --global ./packages/cli
 ```
 
 ## Comandos
@@ -111,8 +120,8 @@ packages/cli/
 
 ## Origen
 
-Brix se incubó dentro del monorepo `denispaiva/blends` y se graduó a este repo
-por `git subtree split`, conservando su historial.
+Brix se incuba dentro del monorepo `denispaiva/blends`, en `vc/brix/`. Este
+repo se actualiza desde ahí con `git subtree split`, que conserva el historial.
 
 ## Licencia
 

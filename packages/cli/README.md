@@ -4,8 +4,10 @@ CLI de gobernanza del ecosistema Vibe Coding: scoring de tooling contra una
 matriz de 100 puntos, specs ejecutables, graduación por `git subtree` y
 scaffolding de CI.
 
+Brix no se publica en npm. Desde un clon del repositorio:
+
 ```bash
-npm install --global @denispaiva/brix-cli
+npm install --global ./packages/cli
 brix
 ```
 

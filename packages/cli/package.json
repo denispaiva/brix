@@ -1,6 +1,7 @@
 {
   "name": "@denispaiva/brix-cli",
   "version": "0.1.0",
+  "private": true,
   "description": "CLI de gobernanza del ecosistema Vibe Coding: scoring de tooling con matriz de 100 puntos, specs ejecutables, graduación por git subtree y scaffolding de CI.",
   "keywords": [
     "cli",
@@ -35,9 +36,6 @@
     "scripts",
     "scoring"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
     "start": "node ./bin/brix.js",
     "smoke": "node ./bin/brix.js"
