@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseFlags } from '../src/lib/args.js';
+import { loadConfig } from '../src/lib/config.js';
 
 // Directorio propio de este script (vc/brix/packages/cli/scripts/), no el
 // cwd del proceso. La matriz viaja empaquetada junto al evaluador, así que
@@ -9,7 +11,9 @@ import { fileURLToPath } from 'node:url';
 const packageScriptsDir = fileURLToPath(new URL('.', import.meta.url));
 
 const apiKey = process.env.GEMINI_API_KEY;
-const targetTool = process.argv[2];
+const { flags, positional } = parseFlags(process.argv.slice(2));
+const targetTool = positional[0];
+const config = loadConfig(process.cwd());
 
 if (!apiKey) {
   console.error("❌ Error: GEMINI_API_KEY no está definida en el entorno.");
@@ -17,7 +21,7 @@ if (!apiKey) {
 }
 
 if (!targetTool) {
-  console.error("❌ Uso: node vc/brix/packages/cli/scripts/score-evaluator.js <nombre-del-paquete-o-repo>");
+  console.error("❌ Uso: node <ruta>/scripts/score-evaluator.js <nombre-del-paquete-o-repo> [--outDir <dir>]");
   process.exit(1);
 }
 
@@ -82,7 +86,12 @@ async function evaluate() {
     
     const jsonResult = JSON.parse(resultText);
     
-    const outputDir = path.resolve('vc/brix/packages/cli/scoring/evaluations');
+    // La evaluación es un dato del proyecto que invoca al CLI, no del paquete:
+    // se escribe cwd-relativa, nunca dentro del propio @brix/cli instalado.
+    // Precedencia: --outDir > score.outputDir del config > convención vc/.
+    const outputDir = path.resolve(
+      flags.outDir || config.score?.outputDir || 'vc/tooling/scoring/evaluations'
+    );
     fs.mkdirSync(outputDir, { recursive: true });
 
     const fileName = `${targetTool.replace(/[^a-zA-Z0-9_-]/g, '_')}.evaluation.json`;
