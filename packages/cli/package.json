@@ -1,11 +1,45 @@
 {
-  "name": "@brix/cli",
+  "name": "@denispaiva/brix-cli",
   "version": "0.1.0",
+  "description": "CLI de gobernanza del ecosistema Vibe Coding: scoring de tooling con matriz de 100 puntos, specs ejecutables, graduación por git subtree y scaffolding de CI.",
+  "keywords": [
+    "cli",
+    "governance",
+    "scoring",
+    "monorepo",
+    "subtree",
+    "vibe-coding",
+    "brix"
+  ],
+  "license": "MIT",
+  "author": "Denis Paiva",
+  "homepage": "https://github.com/denispaiva/brix#readme",
+  "bugs": {
+    "url": "https://github.com/denispaiva/brix/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/denispaiva/brix.git",
+    "directory": "packages/cli"
+  },
   "type": "module",
+  "engines": {
+    "node": ">=26"
+  },
   "bin": {
     "brix": "./bin/brix.js"
   },
+  "files": [
+    "bin",
+    "src",
+    "scripts",
+    "scoring"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "start": "node ./bin/brix.js"
+    "start": "node ./bin/brix.js",
+    "smoke": "node ./bin/brix.js"
   }
 }

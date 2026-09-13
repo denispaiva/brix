@@ -1,0 +1,23 @@
+{
+  "name": "brix",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Vibe Coding Governance OS — raíz del workspace de Brix.",
+  "license": "MIT",
+  "author": "Denis Paiva",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/denispaiva/brix.git"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=26"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "brix": "node packages/cli/bin/brix.js",
+    "smoke": "node packages/cli/bin/brix.js"
+  }
+}

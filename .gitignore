@@ -1,0 +1,23 @@
+# Dependencias
+node_modules/
+
+# Secretos y entorno
+.env
+.env.*
+!.env.example
+
+# Artefactos de empaquetado
+*.tgz
+dist/
+coverage/
+
+# Nota: las evaluaciones que genera `brix tool score` NO se ignoran.
+# Son registros de gobernanza y se commitean (ver score.outputDir en
+# brix.config.json).
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/

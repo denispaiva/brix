@@ -1,0 +1,17 @@
+{
+  "$comment": "Layout del repo independiente de Brix. Toma efecto cuando brix se invoca desde la raíz de este repo. El monorepo blends tiene su propio archivo con sus rutas.",
+  "idea": {
+    "defaultInput": "ideas/draft.md",
+    "org": "denispaiva"
+  },
+  "graduate": {
+    "branch": "graduation-export"
+  },
+  "ci": {
+    "watchPaths": ["packages/**", "ideas/**"],
+    "entrypoint": "packages/cli/bin/brix.js"
+  },
+  "score": {
+    "outputDir": "evaluations"
+  }
+}

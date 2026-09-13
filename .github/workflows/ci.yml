@@ -1,0 +1,30 @@
+name: Brix Vibe Coding CI
+
+on:
+  push:
+    branches: [ main, tooling/* ]
+    paths:
+      - 'packages/**'
+      - 'ideas/**'
+      - '.github/workflows/ci.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'packages/**'
+      - 'ideas/**'
+
+jobs:
+  governance-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js v26
+        uses: actions/setup-node@v4
+        with:
+          node-version: 26
+
+      - name: Verify Brix CLI Operational Status
+        run: |
+          node packages/cli/bin/brix.js
