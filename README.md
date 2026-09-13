@@ -13,6 +13,9 @@ anticipa la calidad del vino antes de la cosecha.
 > directamente en este repo hace que el próximo push del espejo sea rechazado,
 > hasta descartarlo.
 
+**Proyecto graduado el 2026-09-13.** El registro de la decisión está en
+[`docs/decisions/0001-graduation.md`](docs/decisions/0001-graduation.md).
+
 ## Requisitos
 
 - Node.js 26 o superior.
