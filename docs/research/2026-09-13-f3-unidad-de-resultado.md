@@ -2,7 +2,7 @@
 
 - Fecha: 2026-09-13
 - Tarea: T-09, frente F3 de la Fase 0
-- Estado: **comparación cuantitativa completa; unidad pendiente de elección por el PO**
+- Estado: **decidido el 2026-09-14 — entregable**
 - Decide: Denis Paiva (product-owner)
 - Origen: [propuesta de la Fase 0](../plans/2026-09-13-fase-0-propuesta.md), frente F3
 
@@ -16,7 +16,9 @@ actividad en lugar de progreso (la tensión C3). El criterio de cierre admite
 una unidad elegida por el PO con la comparación a la vista, **o el registro de
 que ninguna sola alcanza y hacen falta dos**.
 
-Este documento entrega la comparación. No elige.
+Este documento entrega la comparación. La elección está registrada abajo, en
+«Decisión del PO», agregada el 2026-09-14 — un día después de la comparación
+original.
 
 ## Método
 
@@ -99,11 +101,32 @@ unidad que el tren produce sin pedirle nada a nadie. Esa combinación no
 resuelve el vacío del KPI por sí sola: sigue dependiendo del mecanismo M2
 (productor) para que el entregable acumule datos reales.
 
+## Decisión del PO (2026-09-14)
+
+**Entregable.** El PO eligió la unidad, no la combinación sin decidir de la
+síntesis de arriba — entregable solo, no "entregable para progreso, vagón
+para cadencia".
+
+Queda a la vista, no oculto: el propio hallazgo de calidad de datos de este
+documento advierte que el entregable "es el que peor mide progreso *en la
+práctica*" (0 de 30 llegó a `accepted` en toda la historia) y que
+`kpi-history.mjs` "no tiene, hoy, una transición de estado por entregable y
+por día para los que no están en revisión" — el hueco que este mismo
+documento señalaba como "a cerrar antes de que sirva para medir progreso con
+precisión" si se elegía esta unidad. Con la elección hecha, ese hueco pasa de
+advertencia a pendiente concreto.
+
+Esta elección es consistente con un hecho que ya existía antes de esta
+decisión: las tres piezas del mecanismo aprobado por el PO el mismo
+2026-09-13 (M1 visibilidad, M2 productor, M3 regla de aceptación) ya asumían
+al entregable como la unidad sobre la que operan — ninguna necesita
+rediseño por esta elección.
+
 ## Qué NO decide este documento
 
-- No elige la unidad de resultado. Esa es la decisión del PO que cierra F3.
 - No corrige la clasificación de ideas/proyectos/framework: usa una taxonomía
   de tres categorías, declarada arriba, que deja un resto grande sin afinar.
 - No construye el instrumento que contaría la unidad elegida de forma
   continua — eso es trabajo aparte, después de la elección.
-- No resuelve el hueco de transición por entregable descrito arriba.
+- No resuelve el hueco de transición por entregable descrito arriba — queda
+  registrado como pendiente concreto, no como resuelto acá.
