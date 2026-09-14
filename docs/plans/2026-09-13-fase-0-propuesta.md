@@ -2,7 +2,7 @@
 
 - Fecha: 2026-09-13
 - Preparado por: sesión de ejecución, a pedido del PO
-- Estado: **propuesta sin aprobar**
+- Estado: **aprobada por el PO el 2026-09-13**, con D1, D3 y D7 decididas; registro en [`0002-role-bindings.md`](../decisions/0002-role-bindings.md)
 - Ajustes: tres ajustes del PO sobre F1 y las decisiones paralelas, y cuatro decisiones del PO sobre el motor del Scoring Skill y las condiciones para arrancar, todos del 2026-09-13
 - Decide: Denis Paiva (product-owner)
 - Origen: [acta de graduación](../decisions/0001-graduation.md), que fija la Fase 0 como responder las preguntas abiertas antes de sumar funcionalidad nueva al CLI
@@ -148,13 +148,13 @@ o el registro de que con un solo integrador no hay equilibrio.
 
 ## Decisiones del PO antes de arrancar
 
-1. **D1: dónde viven los instrumentos.** En `vc/brix/scripts/`, junto al CLI pero fuera de sus comandos, dentro del alcance `project-brix`. O en `vc/tools/`, como tooling del framework, con otra regla de alcance.
+1. **D1: dónde viven los instrumentos.** **Decidido: `vc/brix/scripts/`**, junto al CLI pero fuera de sus comandos, dentro del alcance `project-brix`.
 2. **D2: `clarificacion`.** Plegarla a Brix, con su medición como punto de partida del instrumento de contexto. O dejarla como idea separada, con coordinación explícita.
-3. **D3: cómo se reparten los minutos de un tren entre sus vagones.** Por partes iguales, en proporción a los archivos de cada rama, o en proporción al tiempo de sus jobs.
+3. **D3: cómo se reparten los minutos de un tren entre sus vagones.** **Decidido: por partes iguales, 1/N sobre el total facturado**, arranque del runner incluido, para que la suma de los vagones coincida con el monitor de escasez.
 4. **D4: cómo se mide la atención del PO.** Con el indicador de turnos y ventanas de actividad. O con un registro manual breve por semana. O declarándola no medible.
 5. **D5: dónde se registran los tres recursos.** Extendiendo el esquema de `actuals`, que es un cambio de estándar. O en un registro paralelo dentro de `vc/brix/`.
 6. **D6: cómo se vincula una rama a un entregable.** Con una entrada en `evidence`, sin cambiar el esquema, o con un campo nuevo.
-7. **D7: fecha de revisión de la Fase 0.** El acta no fijó plazo. La propuesta es revisar el avance el 2026-10-11, cuatro semanas después de la graduación, sin vuelta obligatoria a gate.
+7. **D7: fecha de revisión de la Fase 0.** **Decidido: 2026-10-11**, cuatro semanas después de la graduación, sin vuelta obligatoria a gate.
 
 ## Esfuerzo estimado del PO
 
@@ -211,7 +211,7 @@ Decidido por el PO el 2026-09-13, al revisar esta propuesta:
 
 ## Condiciones para arrancar
 
-Decidido por el PO el 2026-09-13: **ningún trabajo de la Fase 0 ni de las decisiones paralelas empieza antes de que se cumplan estas dos condiciones.**
+Decidido por el PO el 2026-09-13: **ningún trabajo de la Fase 0 ni de las decisiones paralelas empieza antes de que se cumplan estas dos condiciones.** Las dos se cumplieron el mismo día: el tren `tren/2026-09-13` integró la graduación, y el PO aprobó la propuesta con D1, D3 y D7.
 
 1. El tren integró a `main` la rama de la graduación, `tooling/brix-decoupling-graduation`. Hasta entonces la regla `project-brix` no existe en `main`.
 2. El PO aprobó formalmente esta propuesta y las decisiones D1 a D7.
