@@ -2,7 +2,7 @@
 
 - Fecha: 2026-09-13
 - Tarea: T-08, frente F2 de la Fase 0
-- Estado: **causa verificada contra la historia; mecanismo propuesto, sin aprobar**
+- Estado: **causa verificada contra la historia; mecanismo aprobado por el PO el 2026-09-13**
 - Decide: Denis Paiva (product-owner)
 - Origen: [propuesta de la Fase 0](../plans/2026-09-13-fase-0-propuesta.md), frente F2
 
@@ -13,7 +13,7 @@ datos, y qué haría falta para que los tenga. El criterio de cierre de la
 propuesta pide dos cosas: un diagnóstico con la causa verificada contra la
 historia, y un mecanismo aprobado por el PO.
 
-Este documento entrega la primera completa y la segunda como propuesta.
+Este documento entrega las dos: la causa verificada, y el mecanismo que el PO aprobó el 2026-09-13.
 
 ## Evidencia
 
@@ -111,7 +111,7 @@ que instalar por primera vez.
 
 ## Mecanismo propuesto
 
-**Sin aprobar.** Tres piezas independientes, cada una atacando una causa:
+Tres piezas independientes, cada una atacando una causa. El PO las aprobó; la decisión está al final de esta sección.
 
 | Pieza | Qué hace | Ataca la causa | Depende de | Qué toca fuera de `project-brix` |
 |---|---|---|---|---|
@@ -138,10 +138,27 @@ Las tres piezas tocan archivos fuera de `project-brix`, así que cada una va en
 su propia rama, con la regla de alcance que corresponda o con excepción
 declarada.
 
+### Decisión del PO
+
+Tomada el 2026-09-13, al leer este diagnóstico:
+
+| Pieza | Veredicto |
+|---|---|
+| M1. Visibilidad | Aprobada |
+| M3. Regla de aceptación | Aprobada, con prioridad: es la palanca para destrabar a los 8 entregables aprobados |
+| M2. Productor | Aprobada, condicionada a D5, D6 y a que `recycle.mjs` llegue a `main` |
+
+El orden aprobado es el recomendado: M1, después M3, después M2. La salvaguarda
+de M3 queda como parte de lo aprobado: aceptar con medición pendiente exige
+declarar el motivo y la fecha.
+
+Con esta decisión, F2 cumple su criterio de cierre. La implementación de cada
+pieza es trabajo aparte, en ramas propias.
+
 ## Qué NO decide este documento
 
-- No aprueba ni implementa ninguna pieza del mecanismo.
-- No cambia la regla de aceptación.
+- No implementa ninguna pieza del mecanismo. La aprobación es del PO y está registrada arriba.
+- No cambia la regla de aceptación: lo hará la implementación de M3, con su propio registro.
 - No decide D5 ni D6.
 - No diagnostica por qué los 5 entregables del motor de Pinot Index en revisión no tienen aprobación.
 - No decide si la hipótesis del PO se corrige en la ficha de la idea.
