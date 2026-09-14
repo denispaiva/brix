@@ -179,16 +179,56 @@ Cowork.
 Flags: `--cycle AAAA-MM`, `--projects <carpeta>`, `--repo <raíz del clon>`,
 `--out <ruta>`.
 
+### Atención del PO por rama
+
+```bash
+node scripts/po-attention.mjs --cycle 2026-09
+```
+
+Es un indicador, no una medida. Lo único que deja un transcript sobre la
+atención humana es cuándo se escribió cada turno. El instrumento cuenta los
+turnos humanos y suma el tiempo entre turnos consecutivos de una misma
+sesión, con un tope por hueco, 15 minutos por defecto, para que una sesión
+abandonada no cuente horas. No captura el tiempo de lectura después del
+último turno.
+
+Como es una sola persona, las sesiones simultáneas no suman: el total es la
+unión de los intervalos, y un tramo en que hay varias sesiones activas se
+reparte en partes iguales entre sus ramas, igual que el 1/N de los trenes.
+Sin esto, un día con sesiones en paralelo llegaba a 22,8 horas.
+
+Qué excluye, y cómo lo reconoce:
+
+| Excluido | Cómo se reconoce |
+|---|---|
+| Notificaciones de tareas en segundo plano | `origin.kind` es `task-notification` |
+| Sospechosos de tarea programada | el turno corre en modo de permisos `default`, que las sesiones interactivas casi no usan; es una heurística declarada |
+| Origen desconocido | versiones viejas sin campo `origin`; se cuentan aparte, sin sumar |
+
+La serie en `data/po-attention/<ciclo>.json` trae turnos, sesiones y minutos
+por rama y por día, los excluidos, el tope usado y la advertencia de que no
+hay validación externa. Cómo se usa este indicador lo decide el PO en D4.
+
+Una sesión abierta en un worktree con HEAD desacoplado aparece bajo la rama
+`HEAD`, sin atribución posible a un entregable. Lo mismo vale para la serie de
+ventana de contexto.
+
+Flags: `--cycle AAAA-MM`, `--gap-cap <minutos>`, `--projects <carpeta>`,
+`--repo <raíz del clon>`, `--out <ruta>`.
+
 ## Estructura
 
 ```
 scripts/
   actions-minutes.mjs          instrumento F1: minutos de Actions por rama
   context-window.mjs           instrumento F1: ventana de contexto por rama
+  po-attention.mjs             instrumento F1: atención del PO por rama
+  lib/transcripts.mjs          lectura compartida de los transcripts locales
   tests/                       pruebas de los instrumentos
 data/
   actions-minutes/             series versionadas por ciclo
   context-window/              series versionadas por ciclo
+  po-attention/                series versionadas por ciclo
 packages/cli/
   bin/brix.js                  punto de entrada y orquestación de flags
   src/commands/                idea, graduate, ci
