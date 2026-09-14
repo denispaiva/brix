@@ -187,10 +187,24 @@ node scripts/po-attention.mjs --cycle 2026-09
 
 Es un indicador, no una medida. Lo único que deja un transcript sobre la
 atención humana es cuándo se escribió cada turno. El instrumento cuenta los
-turnos humanos y suma el tiempo entre turnos consecutivos de una misma
-sesión, con un tope por hueco, 15 minutos por defecto, para que una sesión
-abandonada no cuente horas. No captura el tiempo de lectura después del
-último turno.
+turnos humanos y suma el tiempo entre turnos consecutivos de una misma sesión,
+con un tope por hueco para que una sesión abandonada no cuente horas. No
+captura el tiempo de lectura después del último turno.
+
+**Se reporta como banda**, por la decisión D4 del PO del 2026-09-13. El piso es
+la atención calculada con un tope de 5 minutos por hueco, y el techo la
+calculada con 15. Los dos topes son supuestos sobre el mismo hueco: con 5, un
+silencio largo es distracción; con 15, es lectura o espera del agente. Ninguno
+de los dos valores se reporta solo, porque el número depende casi por completo
+del tope elegido.
+
+En el total y por día, el piso siempre queda por debajo del techo, porque la
+unión de intervalos crece con el tope. **Por rama, la banda es el rango entre
+las dos estimaciones**: el reparto de los tramos simultáneos puede darle a una
+rama más minutos con el tope bajo, porque con el alto su intervalo se superpone
+más con otras sesiones. En el ciclo 2026-09 pasó en 3 de 36 ramas, por hasta 3
+minutos. Por eso la suma de los pisos de las ramas puede no coincidir con el
+piso total.
 
 Como es una sola persona, las sesiones simultáneas no suman: el total es la
 unión de los intervalos, y un tramo en que hay varias sesiones activas se
@@ -205,16 +219,18 @@ Qué excluye, y cómo lo reconoce:
 | Sospechosos de tarea programada | el turno corre en modo de permisos `default`, que las sesiones interactivas casi no usan; es una heurística declarada |
 | Origen desconocido | versiones viejas sin campo `origin`; se cuentan aparte, sin sumar |
 
-La serie en `data/po-attention/<ciclo>.json` trae turnos, sesiones y minutos
-por rama y por día, los excluidos, el tope usado y la advertencia de que no
-hay validación externa. Cómo se usa este indicador lo decide el PO en D4.
+La serie en `data/po-attention/<ciclo>.json` trae turnos y sesiones, y minutos
+con piso y techo por rama y por día, además de los excluidos, los topes usados
+y la advertencia de que no hay validación externa.
 
 Una sesión abierta en un worktree con HEAD desacoplado aparece bajo la rama
 `HEAD`, sin atribución posible a un entregable. Lo mismo vale para la serie de
 ventana de contexto.
 
-Flags: `--cycle AAAA-MM`, `--gap-cap <minutos>`, `--projects <carpeta>`,
-`--repo <raíz del clon>`, `--out <ruta>`.
+Flags: `--cycle AAAA-MM`, `--low-cap <minutos>` y `--high-cap <minutos>` para
+otra banda, `--gap-cap <minutos>` para un tope único de sensibilidad, que se
+escribe aparte como `<ciclo>-tope-<minutos>.json` y nunca pisa la serie oficial,
+`--projects <carpeta>`, `--repo <raíz del clon>`, `--out <ruta>`.
 
 ## Estructura
 

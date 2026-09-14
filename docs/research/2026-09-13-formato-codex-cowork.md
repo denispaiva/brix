@@ -23,7 +23,7 @@ o no obtenible.
 |---|---|---|---|---|
 | Minutos de Actions | Serie reproducible y atribuible | API de corridas y jobs de GitHub, sin importar qué herramienta abrió la corrida | 0,8 % de desvío contra el monitor de escasez, dentro de la tolerancia del 10 % | Atribuye por rama; el paso de rama a entregable espera D6 |
 | Ventana de contexto | Serie reproducible y atribuible | Transcripts de Claude Code, con instrumento. Codex: obtenible y atribuible, sin instrumento. Cowork: obtenible, no atribuible | Sin fuente externa. Reproducible entre corridas | Codex aporta el 0,43 % del contexto de blends en el ciclo 2026-09. Cowork no tiene sesiones de blends |
-| Atención del PO | Serie reproducible y atribuible, como indicador | Marcas de tiempo de turnos humanos de Claude Code, con instrumento. Codex: obtenible por turno, sin instrumento | Sin fuente externa. Reproducible entre corridas | Cambia casi por completo con el tope por hueco; cómo se usa lo decide D4 |
+| Atención del PO | Serie reproducible y atribuible, como indicador | Marcas de tiempo de turnos humanos de Claude Code, con instrumento. Codex: obtenible por turno, sin instrumento | Sin fuente externa. Reproducible entre corridas | Cambia casi por completo con el tope por hueco. Por D4 se reporta como banda entre el tope de 5 y el de 15 minutos |
 
 Ningún recurso quedó como no obtenible. El límite común es el mismo en los
 tres: la atribución llega hasta la rama, y el vínculo de rama a entregable es
@@ -129,14 +129,32 @@ no medible.
 
 ## Consecuencias para la Fase 0
 
-- **F1 queda en condiciones de cerrarse.** Los tres recursos tienen serie reproducible y atribuible por rama sobre Claude Code y GitHub.
-- **Instrumentar Codex es una decisión, no un requisito del veredicto.** Hoy aporta menos del medio por ciento del contexto de blends. Pero los bindings del proyecto ponen a Codex como architect y code-reviewer, así que ese porcentaje puede crecer con el trabajo de la Fase 0. Extender los instrumentos de contexto y atención con un lector de Codex costaría un módulo en `scripts/lib/`, con las tres trampas de arriba cubiertas por pruebas.
+- **F1 queda cerrado.** Los tres recursos tienen serie reproducible y atribuible por rama sobre Claude Code y GitHub.
 - **D6 limita a los tres recursos por igual.** Sin vínculo de rama a entregable, ninguna serie llega al entregable.
-- **D4 sigue pendiente**, y el hallazgo de Codex no la cambia.
+
+## Decisiones del PO sobre el cierre de F1
+
+Tomadas el 2026-09-13, al leer este documento:
+
+| Decisión | Valor |
+|---|---|
+| D4, cómo se usa la atención del PO | Se reporta como **banda**: el piso es la atención calculada con un tope de 5 minutos por hueco entre turnos, y el techo la calculada con 15. Ninguno de los dos valores se reporta solo |
+| Instrumentación de Codex | **Diferida a la revisión de la Fase 0 del 2026-10-11.** Hoy aporta el 0,43 % del contexto de blends; se vuelve a medir con esta misma prueba, sabiendo que Codex es architect y code-reviewer en los bindings del proyecto |
+
+Los dos topes no son una ventana mínima y una máxima de atención. Son dos
+supuestos sobre el mismo hueco entre turnos consecutivos: con 5 minutos se asume
+que un silencio largo es distracción, con 15 que es lectura o espera del agente.
+La atención real de un ciclo está, con alta probabilidad, dentro de la banda. Por
+rama, la banda es el rango entre las dos estimaciones, porque el reparto de los
+tramos simultáneos puede darle a una rama más minutos con el tope bajo.
+
+El instrumento `scripts/po-attention.mjs` implementa la banda como salida por
+defecto. Si en la revisión se instrumenta Codex, el lector costaría un módulo en
+`scripts/lib/`, con las tres trampas de arriba cubiertas por pruebas.
 
 ## Qué NO decide este documento
 
 - No extiende los instrumentos a Codex ni a Cowork.
-- No decide D4 ni D6.
+- No decide D6. D4 y la instrumentación de Codex quedan decididas arriba por el PO, no por este documento.
 - No mide Codex fuera de blends ni fuera del ciclo 2026-09.
 - No verifica la causa de las caídas del acumulado de Codex ni los totales del `audit.jsonl` de Cowork.
