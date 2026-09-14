@@ -18,7 +18,7 @@ anticipa la calidad del vino antes de la cosecha.
 
 ## Requisitos
 
-- Node.js 26 o superior.
+- Node.js 24 o superior.
 - `git`, para `brix graduate`.
 - Una API key de Gemini en `GEMINI_API_KEY`, para `brix tool score` y `brix idea`.
 

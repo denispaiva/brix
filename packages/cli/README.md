@@ -11,7 +11,7 @@ npm install --global ./packages/cli
 brix
 ```
 
-Requiere Node.js 26 o superior. `brix tool score` y `brix idea` necesitan una
+Requiere Node.js 24 o superior. `brix tool score` y `brix idea` necesitan una
 API key de Gemini en `GEMINI_API_KEY`.
 
 La documentación completa, con flags, configuración por proyecto y la matriz

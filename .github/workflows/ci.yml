@@ -20,10 +20,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js v26
+      - name: Setup Node.js v24
         uses: actions/setup-node@v4
         with:
-          node-version: 26
+          node-version: 24
 
       - name: Verify Brix CLI Operational Status
         run: |
