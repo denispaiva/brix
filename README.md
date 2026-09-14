@@ -232,6 +232,33 @@ otra banda, `--gap-cap <minutos>` para un tope único de sensibilidad, que se
 escribe aparte como `<ciclo>-tope-<minutos>.json` y nunca pisa la serie oficial,
 `--projects <carpeta>`, `--repo <raíz del clon>`, `--out <ruta>`.
 
+## Diagnóstico del KPI de entrega
+
+### Historia del KPI sobre los roadmaps
+
+```bash
+node scripts/kpi-history.mjs --ref origin/main
+```
+
+Instrumento del frente F2 de la Fase 0, que diagnostica por qué el KPI de
+entrega nunca tuvo datos. Recorre la historia first-parent de la referencia,
+toma el último commit de cada día que tocó un `.roadmap.json`, y cuenta los
+entregables por estado, por estado de medición y por presencia de `actuals`.
+Si la punta de la referencia es posterior, la agrega como último día.
+
+Calcula además, para cada entregable que hoy está en revisión, desde cuándo
+lo está sin interrupción. Es la evidencia del estancamiento: el chequeo del
+tablero que corre en CI rechaza aceptar un entregable sin medición, y nada
+produce mediciones.
+
+La serie va a `data/kpi-history/<fecha de la punta>.json`. Solo lee datos del
+repo con git y no modifica nada. Por defecto excluye `roadmap/example.roadmap.json`,
+que es una plantilla con datos ficticios. Un entregable que cambió de carpeta,
+como Brix al graduarse de `ideas/` a `vc/`, cambia de clave y su racha
+arranca de cero.
+
+Flags: `--ref <referencia>`, `--repo <clon>`, `--include-example`, `--out <ruta>`.
+
 ## Estructura
 
 ```
@@ -239,12 +266,14 @@ scripts/
   actions-minutes.mjs          instrumento F1: minutos de Actions por rama
   context-window.mjs           instrumento F1: ventana de contexto por rama
   po-attention.mjs             instrumento F1: atención del PO por rama
+  kpi-history.mjs              instrumento F2: historia del KPI de entrega
   lib/transcripts.mjs          lectura compartida de los transcripts locales
   tests/                       pruebas de los instrumentos
 data/
   actions-minutes/             series versionadas por ciclo
   context-window/              series versionadas por ciclo
   po-attention/                series versionadas por ciclo
+  kpi-history/                 series versionadas por fecha de la punta
 packages/cli/
   bin/brix.js                  punto de entrada y orquestación de flags
   src/commands/                idea, graduate, ci
