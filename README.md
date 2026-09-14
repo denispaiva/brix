@@ -150,14 +150,45 @@ Necesita `gh` autenticado y un clon donde existan las puntas de los trenes.
 Una punta que el clon no tiene se imputa al nombre del tren, sin inventar
 vagones. Las pruebas están en `scripts/tests/`.
 
+### Ventana de contexto por rama
+
+```bash
+node scripts/context-window.mjs --cycle 2026-09
+```
+
+Recorre en streaming los transcripts locales de Claude Code del repo y de
+todos sus worktrees, en `~/.claude/projects/`, y de cada respuesta del modelo
+toma cuatro contadores de uso, la marca de tiempo, la sesión y la rama. Nunca
+lee el contenido de los mensajes, y la serie que escribe en
+`data/context-window/<ciclo>.json` solo tiene agregados: totales, por rama y
+por día.
+
+El contexto de una llamada es todo lo que entró al modelo: tokens de
+entrada, de creación de caché y de lectura de caché. El caché abarata, no
+achica la ventana, y la serie informa qué parte vino de ahí.
+
+Una misma respuesta aparece repetida en el transcript, una línea por bloque
+de contenido, con el mismo uso en todas. El instrumento deduplica por id de
+mensaje; sin eso la serie se infla más del doble.
+
+No hay una fuente externa de tokens contra la cual validar, porque las
+suscripciones no exponen consumo. La serie declara esa ausencia y se
+verifica por reproducibilidad entre corridas. Todavía no cubre Codex ni
+Cowork.
+
+Flags: `--cycle AAAA-MM`, `--projects <carpeta>`, `--repo <raíz del clon>`,
+`--out <ruta>`.
+
 ## Estructura
 
 ```
 scripts/
   actions-minutes.mjs          instrumento F1: minutos de Actions por rama
+  context-window.mjs           instrumento F1: ventana de contexto por rama
   tests/                       pruebas de los instrumentos
 data/
   actions-minutes/             series versionadas por ciclo
+  context-window/              series versionadas por ciclo
 packages/cli/
   bin/brix.js                  punto de entrada y orquestación de flags
   src/commands/                idea, graduate, ci
