@@ -1,0 +1,724 @@
+{
+  "$schema": "../../../../vc/docs/standards/role-matrix.schema.json",
+  "schemaVersion": "1.8.0",
+  "project": "brix",
+  "roles": {
+    "product-owner": {
+      "kind": "hybrid",
+      "description": "Decide el alcance de la Fase 0 y sus decisiones D1 a D7, los veredictos de gate, la línea del ledger para la API de Gemini y qué cuenta como unidad de resultado del portfolio."
+    },
+    "architect": {
+      "kind": "agent",
+      "description": "Decide el contrato de los instrumentos de medición: reglas de atribución (D3, D6), formato de las series, precedencia de configuración del CLI y el límite entre el motor del Scoring Skill y su envoltorio en vc/tools/."
+    },
+    "senior-developer": {
+      "kind": "agent",
+      "description": "Construye los instrumentos de F1 en vc/brix/scripts/, los cambios del CLI y la migración del motor del Scoring Skill, con pruebas propias y sin funcionalidad nueva del CLI hasta cerrar la Fase 0."
+    },
+    "code-reviewer": {
+      "kind": "agent",
+      "description": "Audita de forma independiente y decorrelacionada el método de medición: reproducibilidad, validación contra el monitor de escasez y ausencia de contenido de transcripts en lo versionado."
+    },
+    "researcher": {
+      "kind": "agent",
+      "description": "Ejecuta F2, F3 y F4: diagnóstico del KPI vacío sobre la historia de git, comparación de unidades de resultado y evaluaciones de tooling con /tool."
+    },
+    "finops-analyst": {
+      "kind": "agent",
+      "description": "Valida la serie de minutos de Actions contra el monitor de escasez, mantiene la línea de Gemini en el ledger y las unit economics de los tres recursos escasos: atención del PO, minutos de Actions y ventana de contexto."
+    }
+  },
+  "surfaces": {
+    "product.vision": {
+      "criticality": "P0",
+      "authority": {
+        "product-owner": [
+          "decides",
+          "executes"
+        ],
+        "architect": [
+          "proposes"
+        ],
+        "code-reviewer": [
+          "reviews"
+        ],
+        "researcher": [
+          "proposes"
+        ]
+      },
+      "gates": [
+        "human-approval"
+      ]
+    },
+    "business.rules": {
+      "criticality": "P0",
+      "authority": {
+        "product-owner": [
+          "reviews"
+        ],
+        "architect": [
+          "decides"
+        ],
+        "senior-developer": [
+          "proposes",
+          "executes"
+        ],
+        "code-reviewer": [
+          "audits"
+        ],
+        "researcher": [
+          "proposes"
+        ]
+      },
+      "gates": [
+        "unit-tests",
+        "independent-audit"
+      ]
+    },
+    "governance.research": {
+      "criticality": "P2",
+      "authority": {
+        "architect": [
+          "reviews"
+        ],
+        "senior-developer": [
+          "proposes"
+        ],
+        "code-reviewer": [
+          "reviews"
+        ],
+        "researcher": [
+          "decides",
+          "executes"
+        ]
+      },
+      "gates": []
+    },
+    "finops.budget": {
+      "criticality": "P0",
+      "authority": {
+        "product-owner": [
+          "decides"
+        ],
+        "architect": [
+          "proposes"
+        ],
+        "senior-developer": [
+          "executes"
+        ],
+        "code-reviewer": [
+          "audits"
+        ],
+        "researcher": [
+          "proposes"
+        ],
+        "finops-analyst": [
+          "proposes",
+          "reviews"
+        ]
+      },
+      "gates": [
+        "budget-check",
+        "cost-allocation-check",
+        "finops-review",
+        "independent-audit",
+        "human-approval"
+      ]
+    },
+    "finops.unit-economics": {
+      "criticality": "P1",
+      "authority": {
+        "product-owner": [
+          "reviews"
+        ],
+        "architect": [
+          "proposes"
+        ],
+        "senior-developer": [
+          "proposes"
+        ],
+        "code-reviewer": [
+          "audits"
+        ],
+        "researcher": [
+          "proposes"
+        ],
+        "finops-analyst": [
+          "decides",
+          "executes"
+        ]
+      },
+      "gates": [
+        "cost-allocation-check",
+        "independent-audit"
+      ]
+    },
+    "ecosystem.configuration": {
+      "criticality": "P1",
+      "authority": {
+        "product-owner": [
+          "reviews"
+        ],
+        "architect": [
+          "decides"
+        ],
+        "senior-developer": [
+          "proposes",
+          "executes"
+        ],
+        "code-reviewer": [
+          "audits"
+        ],
+        "researcher": [
+          "proposes"
+        ]
+      },
+      "gates": [
+        "build",
+        "independent-audit"
+      ]
+    },
+    "cloud.architecture": {
+      "criticality": "P1",
+      "authority": {
+        "product-owner": [
+          "reviews"
+        ],
+        "architect": [
+          "decides"
+        ],
+        "senior-developer": [
+          "proposes",
+          "executes"
+        ],
+        "code-reviewer": [
+          "audits"
+        ],
+        "researcher": [
+          "proposes"
+        ],
+        "finops-analyst": [
+          "reviews"
+        ]
+      },
+      "gates": [
+        "build",
+        "budget-check",
+        "cost-allocation-check",
+        "finops-review",
+        "independent-audit"
+      ]
+    },
+    "presentation.mobile": {
+      "criticality": "P1",
+      "authority": {
+        "product-owner": [
+          "reviews"
+        ],
+        "architect": [
+          "reviews"
+        ],
+        "senior-developer": [
+          "decides",
+          "executes"
+        ],
+        "code-reviewer": [
+          "audits"
+        ],
+        "researcher": [
+          "proposes"
+        ]
+      },
+      "gates": [
+        "unit-tests",
+        "build",
+        "mobile-check",
+        "independent-audit"
+      ]
+    }
+  },
+  "bindings": {
+    "product-owner": {
+      "primary": {
+        "agent": "project-owner",
+        "provider": "human",
+        "model": null,
+        "modelFamily": "human",
+        "modelClass": "human",
+        "isolation": "normal"
+      },
+      "fallback": null,
+      "fallbackReviewThreshold": 1,
+      "escalationOwner": "project-owner"
+    },
+    "architect": {
+      "primary": {
+        "agent": "codex",
+        "provider": "openai",
+        "model": "openai-frontier-model",
+        "modelFamily": "openai-reasoning",
+        "modelClass": "frontier",
+        "isolation": "worktree"
+      },
+      "fallback": {
+        "agent": "claude",
+        "provider": "anthropic",
+        "model": "anthropic-frontier-model",
+        "modelFamily": "anthropic-claude",
+        "modelClass": "frontier",
+        "isolation": "fresh-worktree"
+      },
+      "fallbackReviewThreshold": 2
+    },
+    "senior-developer": {
+      "primary": {
+        "agent": "claude",
+        "provider": "anthropic",
+        "model": "anthropic-frontier-model",
+        "modelFamily": "anthropic-claude",
+        "modelClass": "frontier",
+        "isolation": "normal"
+      },
+      "fallback": {
+        "agent": "codex",
+        "provider": "openai",
+        "model": "openai-balanced-model",
+        "modelFamily": "openai-reasoning",
+        "modelClass": "balanced",
+        "isolation": "worktree"
+      },
+      "fallbackReviewThreshold": 2
+    },
+    "code-reviewer": {
+      "primary": {
+        "agent": "codex",
+        "provider": "openai",
+        "model": "openai-frontier-model",
+        "modelFamily": "openai-reasoning",
+        "modelClass": "frontier",
+        "isolation": "fresh-worktree"
+      },
+      "fallback": {
+        "agent": "claude",
+        "provider": "anthropic",
+        "model": "anthropic-frontier-model",
+        "modelFamily": "anthropic-claude",
+        "modelClass": "frontier",
+        "isolation": "fresh-worktree"
+      },
+      "fallbackReviewThreshold": 2
+    },
+    "researcher": {
+      "primary": {
+        "agent": "claude",
+        "provider": "anthropic",
+        "model": "anthropic-economy-model",
+        "modelFamily": "anthropic-claude",
+        "modelClass": "economy",
+        "isolation": "fresh-session"
+      },
+      "fallback": {
+        "agent": "codex",
+        "provider": "openai",
+        "model": "openai-economy-model",
+        "modelFamily": "openai-reasoning",
+        "modelClass": "economy",
+        "isolation": "fresh-session"
+      },
+      "fallbackReviewThreshold": 2
+    },
+    "finops-analyst": {
+      "primary": {
+        "agent": "claude",
+        "provider": "anthropic",
+        "model": "anthropic-economy-model",
+        "modelFamily": "anthropic-claude",
+        "modelClass": "economy",
+        "isolation": "fresh-session"
+      },
+      "fallback": {
+        "agent": "codex",
+        "provider": "openai",
+        "model": "openai-economy-model",
+        "modelFamily": "openai-reasoning",
+        "modelClass": "economy",
+        "isolation": "fresh-session"
+      },
+      "fallbackReviewThreshold": 2
+    }
+  },
+  "architecture": {
+    "layers": {
+      "presentation": {
+        "paths": [
+          "packages/cli/bin/**",
+          "packages/cli/src/commands/**"
+        ],
+        "allowedDependencies": [
+          "business"
+        ],
+        "forbiddenDependencies": [
+          "data"
+        ]
+      },
+      "business": {
+        "paths": [
+          "scripts/**",
+          "packages/cli/scripts/**",
+          "packages/cli/scoring/**"
+        ],
+        "allowedDependencies": [],
+        "forbiddenDependencies": [
+          "presentation",
+          "data",
+          "ecosystem"
+        ]
+      },
+      "data": {
+        "paths": [
+          "data/**"
+        ],
+        "allowedDependencies": [
+          "business"
+        ],
+        "forbiddenDependencies": [
+          "presentation"
+        ]
+      },
+      "ecosystem": {
+        "paths": [
+          "brix.config.json",
+          "package.json",
+          "packages/cli/package.json",
+          "packages/cli/src/lib/**",
+          ".github/**",
+          "docs/**",
+          "README.md",
+          "LICENSE",
+          ".gitignore"
+        ],
+        "allowedDependencies": [],
+        "forbiddenDependencies": [
+          "presentation",
+          "business",
+          "data"
+        ]
+      }
+    },
+    "rulesFiles": [
+      "AGENTS.md"
+    ],
+    "blastRadius": {
+      "requireExplicitWriteScope": true,
+      "allowRuleOverrides": false,
+      "protectedPaths": [
+        ".github/workflows/**",
+        ".env*",
+        "**/secrets/**"
+      ]
+    }
+  },
+  "gates": {
+    "unit-tests": {
+      "kind": "mechanical",
+      "requiredFor": [
+        "P0",
+        "P1"
+      ],
+      "commands": [
+        "node --test vc/brix/**/*.test.mjs"
+      ],
+      "blocksMerge": true,
+      "evidence": "Salida completa y código de finalización."
+    },
+    "build": {
+      "kind": "mechanical",
+      "requiredFor": [
+        "P0",
+        "P1",
+        "P2"
+      ],
+      "commands": [
+        "npm run format:check",
+        "node vc/brix/packages/cli/bin/brix.js"
+      ],
+      "blocksMerge": true,
+      "evidence": "Build reproducible sin errores."
+    },
+    "independent-audit": {
+      "kind": "agent",
+      "requiredFor": [
+        "P0",
+        "P1"
+      ],
+      "ownerRole": "code-reviewer",
+      "blocksMerge": true,
+      "evidence": "Informe independiente con hallazgos y resultado."
+    },
+    "human-approval": {
+      "kind": "human",
+      "requiredFor": [
+        "P0"
+      ],
+      "ownerRole": "product-owner",
+      "blocksMerge": true,
+      "evidence": "Aprobación explícita vinculada al cambio."
+    },
+    "budget-check": {
+      "kind": "mechanical",
+      "requiredFor": [
+        "P0",
+        "P1"
+      ],
+      "commands": [
+        "project-budget-check-command"
+      ],
+      "blocksMerge": true,
+      "evidence": "Budget, forecast, actuals y umbrales conciliados con la fuente de billing."
+    },
+    "cost-allocation-check": {
+      "kind": "mechanical",
+      "requiredFor": [
+        "P0",
+        "P1"
+      ],
+      "commands": [
+        "project-cost-allocation-command"
+      ],
+      "blocksMerge": true,
+      "evidence": "Todo costo asignable contiene project, environment, owner, cost-center y version."
+    },
+    "finops-review": {
+      "kind": "agent",
+      "requiredFor": [
+        "P0",
+        "P1"
+      ],
+      "ownerRole": "finops-analyst",
+      "blocksMerge": true,
+      "evidence": "Forecast, anomalías, unit economics y costo total revisados contra el valor esperado."
+    },
+    "mobile-check": {
+      "kind": "mechanical",
+      "requiredFor": [
+        "P0",
+        "P1",
+        "P2"
+      ],
+      "commands": [
+        "project-mobile-check-command"
+      ],
+      "blocksMerge": true,
+      "evidence": "Aceptación en viewport compacto, touch targets, orientación, red lenta y degradación offline."
+    }
+  },
+  "executionPolicy": {
+    "preferParallel": true,
+    "requireTaskDag": true,
+    "requireDisjointWriteScopes": true,
+    "defaultSubagentModelClass": "economy",
+    "escalateAfterEquivalentFailures": 2
+  },
+  "planningPolicy": {
+    "planRequiredForEveryTask": true,
+    "planningBeforeExecution": true,
+    "requiredSkillSource": "obra/superpowers",
+    "requiredSkill": "writing-plans",
+    "requiredAgents": [
+      "claude",
+      "codex"
+    ],
+    "planEvidenceRequired": true,
+    "compliancePercent": 100,
+    "requirePhases": true,
+    "requireMeasurableDeliverables": true,
+    "requirePhaseExitCriteria": true,
+    "requireTaskPhase": true,
+    "maxParallelPhases": 2
+  },
+  "versioningPolicy": {
+    "scheme": "semver",
+    "developmentStartsAt": "0.1.0",
+    "stableStartsAt": "1.0.0",
+    "tagPattern": "v{version}",
+    "changelogRequired": true,
+    "releaseChannels": [
+      "alpha",
+      "beta",
+      "rc",
+      "stable"
+    ],
+    "bumpRules": {
+      "major": "breaking",
+      "minor": "feature",
+      "patch": "fix"
+    }
+  },
+  "finopsPolicy": {
+    "operatingModel": "hybrid",
+    "currency": "USD",
+    "budgetCadence": "monthly",
+    "reportingCadence": "weekly",
+    "allocationRequired": true,
+    "forecastRequired": true,
+    "unitEconomicsRequired": true,
+    "anomalyManagementRequired": true,
+    "costEvidenceAtPhaseExit": true,
+    "billingLedgerRequired": true,
+    "separateFixedAndUsageBilling": true,
+    "actualsRequireInvoiceEvidence": true,
+    "requiredBillingProviders": [
+      "firebase",
+      "cloudflare",
+      "anthropic",
+      "openai",
+      "google"
+    ],
+    "subscriptionAllocationMethod": "shared-monthly",
+    "mandatoryAllocationKeys": [
+      "project",
+      "environment",
+      "owner",
+      "cost-center",
+      "version"
+    ],
+    "thresholds": {
+      "informationalPercent": 50,
+      "warningPercent": 80,
+      "criticalPercent": 100,
+      "anomalyPercent": 20
+    },
+    "overageAction": "block-non-essential-work",
+    "commitmentApproval": "human"
+  },
+  "toolingPolicy": {
+    "inventoryRequired": true,
+    "technologyVersionRequired": true,
+    "skillSourceRequired": true,
+    "mcpCapabilitiesRequired": true,
+    "mcpAuthModeRequired": true,
+    "secretsForbidden": true,
+    "billingLinkRequiredWhenPaid": true,
+    "reviewCadence": "per-release",
+    "usageAttributionRequired": true
+  },
+  "cloudFirstPolicy": {
+    "enabled": true,
+    "managedServicesPreferred": true,
+    "serverlessPreferredForVariableDemand": true,
+    "costEstimateRequired": true,
+    "dataResidencyDecisionRequired": true,
+    "exitStrategyRequired": true,
+    "portabilityAssessmentRequired": true,
+    "idleResourceCleanupRequired": true,
+    "exceptionRequiresDecisionRecord": true
+  },
+  "mobileFirstPolicy": {
+    "enabled": true,
+    "baselineViewportWidthCssPx": 320,
+    "touchTargets": {
+      "webCssPx": 24,
+      "iosPoints": 44,
+      "androidDp": 48
+    },
+    "wcagLevel": "AA",
+    "adaptiveLayoutsRequired": true,
+    "offlineBehaviorRequired": true,
+    "slowNetworkValidationRequired": true,
+    "orientationSupportRequired": true,
+    "mobileAcceptanceBeforeDesktopEnhancement": true
+  },
+  "sessionTrackingPolicy": {
+    "handoffRequiredAtSessionEnd": true,
+    "sessionGraphRequired": true,
+    "previousSessionSummarySource": "handoff-graph",
+    "fullConversationTransfer": false,
+    "maxContextItems": 30,
+    "requiredHandoffFields": [
+      "summary",
+      "achievements",
+      "decisions",
+      "risks",
+      "next-actions",
+      "evidence"
+    ],
+    "requireEvidence": true,
+    "requireSprintLink": true,
+    "graphType": "directed-acyclic",
+    "carryoverRequiresHandoff": true
+  },
+  "sprintPolicy": {
+    "cadence": "biweekly",
+    "durationDays": 14,
+    "calendarSystem": "iso-week",
+    "weekStartsOn": "monday",
+    "idPattern": "SP-{isoYear}-W{startWeek}",
+    "roadmapTimelineUnit": "sprint",
+    "taskAssignmentRequired": true,
+    "sessionAssignmentRequired": true,
+    "reviewRequired": true,
+    "retrospectiveRequired": true
+  },
+  "deliverableKpiPolicy": {
+    "primaryMetric": "delivery_efficiency_percent",
+    "complexityTokenBudgets": {
+      "XS": 8000,
+      "S": 16000,
+      "M": 32000,
+      "L": 64000,
+      "XL": 128000
+    },
+    "scoreWeightsPercent": {
+      "tokenEfficiency": 40,
+      "quality": 35,
+      "reworkEfficiency": 25
+    },
+    "defectPenalties": {
+      "P0": 50,
+      "P1": 20,
+      "P2": 5,
+      "escaped": 25
+    },
+    "scoreBands": {
+      "excellent": 90,
+      "healthy": 75,
+      "attention": 60
+    },
+    "qualityGuardrail": "no-p0-or-escaped-defects",
+    "guardrailCapPercent": 59,
+    "plannedRefactoringExcludedFromRework": true,
+    "acceptedDeliverableActualsRequired": true,
+    "evidenceRequired": true
+  },
+  "deliverableAuthorityPolicy": {
+    "surfaceLinkRequired": true,
+    "acceptedRequiresApproval": true,
+    "approvalEvidenceRequired": true,
+    "approvalRequiresAuthorizedAction": true,
+    "raciMapping": {
+      "responsible": "executes",
+      "accountable": "decides",
+      "consulted": [
+        "proposes",
+        "reviews"
+      ],
+      "informed": "explicit"
+    },
+    "canonicalTags": [
+      "product-vision",
+      "business-rule",
+      "security",
+      "data",
+      "api",
+      "ui",
+      "mobile",
+      "cloud",
+      "infrastructure",
+      "configuration",
+      "research",
+      "finops",
+      "release"
+    ]
+  },
+  "exceptions": []
+}
