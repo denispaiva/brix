@@ -21,3 +21,7 @@ Thumbs.db
 *.swp
 .idea/
 .vscode/
+
+# Caché local del instrumento de minutos de Actions: corridas y jobs ya
+# pedidos a la API. Se regenera; nunca se versiona.
+.cache/
