@@ -3,7 +3,7 @@
 - Fecha: 2026-09-13
 - Preparado por: sesión de ejecución, a pedido del PO
 - Estado: **propuesta sin aprobar**
-- Ajustes: tres ajustes pedidos por el PO el 2026-09-13, incorporados en F1 y en «Decisiones del gate que avanzan en paralelo»
+- Ajustes: tres ajustes del PO sobre F1 y las decisiones paralelas, y cuatro decisiones del PO sobre el motor del Scoring Skill y las condiciones para arrancar, todos del 2026-09-13
 - Decide: Denis Paiva (product-owner)
 - Origen: [acta de graduación](../decisions/0001-graduation.md), que fija la Fase 0 como responder las preguntas abiertas antes de sumar funcionalidad nueva al CLI
 
@@ -188,7 +188,7 @@ fecha de revisión propuesta.
 
 ## Decisiones del gate que avanzan en paralelo
 
-Ninguna de las dos es funcionalidad nueva del CLI, así que la Fase 0 no las bloquea.
+Ninguna de las dos es funcionalidad nueva del CLI, así que la Fase 0 no las bloquea. Las dos respetan igual las condiciones para arrancar de más abajo.
 
 ### Línea de Gemini en el ledger
 
@@ -196,12 +196,27 @@ Ninguna de las dos es funcionalidad nueva del CLI, así que la Fase 0 no las blo
 - **No se mezcla con la asesina 1.** La línea declara el consumo de la API de Gemini y no toca los minutos de Actions. Mezclarla con los instrumentos de Brix obligaría a declarar una excepción de alcance.
 - **Contenido:** una línea dentro del free tier, con tope de excedente en cero, según el acta.
 
-### Alineación de la matriz por delegación
+### Motor del Scoring Skill dentro de Brix
 
-- **Se delega, no se copian umbrales.** El Scoring Skill tiene seis dimensiones ponderadas y bandas de recomendación, definidas en `vc/tooling/scoring-policy.json`, versión 1.6.0. La matriz del CLI tiene cinco criterios distintos. Cambiar solo sus umbrales de 80 y 50 a 75 y 60 produciría un híbrido que dice estar alineado sin estarlo.
-- **`brix tool score` pasa a invocar el pipeline existente,** `vc/tools/evaluate-tooling.mjs`, el mismo que usa el comando `/tool`. La matriz propia del CLI y su llamada a Gemini dejan de ser el método de scoring.
-- **Tensión a resolver en el diseño.** Ese pipeline vive en blends, fuera de `vc/brix/`. Delegar en él vuelve a acoplar `tool score` al monorepo, y en el espejo el comando no tendría a quién delegar. El diseño tiene que decidir cómo se comporta fuera de blends, por ejemplo fallando con un mensaje claro.
-- **Momento.** La regla `project-brix` todavía no está en `main`, así que la rama de este cambio espera a que el tren integre la graduación.
+Decidido por el PO el 2026-09-13, al revisar esta propuesta:
+
+- **`tool score` cambia de método.** Deja de pedirle el puntaje a Gemini sobre la matriz propia del CLI. Pasa a recolectar evidencia y a registrar la decisión humana aparte, como el Scoring Skill con la política `vc/tooling/scoring-policy.json`, versión 1.6.0. Una evaluación queda pendiente hasta que alguien decide.
+- **El motor se muda al CLI.** El código de evaluación vive dentro de `vc/brix/packages/cli/`, con un punto de entrada explícito. `vc/tools/evaluate-tooling.mjs` queda como envoltorio que importa solo desde ese punto de entrada, así el comando `/tool` y el CI de gobernanza siguen funcionando.
+- **Lo que no se muda.** `vc/tools/validate-tooling.mjs` valida los datos del registro y no es parte del motor, así que se queda en `vc/tools/`. La política y las evaluaciones se quedan en `vc/tooling/`, porque son datos del framework.
+- **Resuelve la tensión de portabilidad.** Con el motor dentro del paquete, `tool score` funciona igual en el espejo que en blends.
+- **Sin comandos nuevos hasta cerrar la Fase 0.** Alinear `tool score` es funcionalidad existente. Exponer `evaluate` o `decide` como comandos o banderas públicas de `brix` es funcionalidad nueva, y espera al cierre de la Fase 0.
+- **Excepción de alcance obligatoria.** La rama de la migración toca `vc/tools/`, sus tests, `vc/docs/standards/skills.md` y el comando `/tool`, que están fuera de `project-brix`. Necesita un `SCOPE-EXCEPTION.md` explícito.
+- **Registro de decisión propio, después de los bindings.** El acta fija que los role bindings son el siguiente registro del proyecto, así que el del motor va después. Ese registro tiene que tratar la inversión de dependencia: un estándar del framework pasa a depender de un proyecto recién graduado. El precedente de la decisión 0002 de Pinot Index cubre un proyecto dueño de una librería que consume otro proyecto, no el framework.
+- **Momento.** La migración nace en su propia rama, después de que el tren integre la graduación.
+
+## Condiciones para arrancar
+
+Decidido por el PO el 2026-09-13: **ningún trabajo de la Fase 0 ni de las decisiones paralelas empieza antes de que se cumplan estas dos condiciones.**
+
+1. El tren integró a `main` la rama de la graduación, `tooling/brix-decoupling-graduation`. Hasta entonces la regla `project-brix` no existe en `main`.
+2. El PO aprobó formalmente esta propuesta y las decisiones D1 a D7.
+
+La rama de la graduación queda en pausa hasta que el tren la integre. No recibe commits nuevos, para no invalidar su medición en la cola ni el espejo.
 
 ## Si el PO aprueba
 
