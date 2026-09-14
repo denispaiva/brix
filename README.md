@@ -110,9 +110,54 @@ Las evaluaciones que genera `tool score` son registros de gobernanza del
 proyecto que invoca al CLI, no del paquete. Se escriben relativas al
 directorio de trabajo y conviene commitearlas.
 
+## Instrumentos de la Fase 0
+
+Viven en `scripts/`, fuera de los comandos del CLI, por la decisión D1 del
+2026-09-13. Leen solo metadatos, corren en local y escriben series agregadas
+en `data/`, que se versionan. El caché de la API queda en `.cache/`, que no.
+
+### Minutos de GitHub Actions por rama
+
+```bash
+node scripts/actions-minutes.mjs --cycle 2026-09 --all-monitor-repos
+```
+
+Reconstruye la factura del ciclo como lo hace el monitor de escasez de
+blends: lista las corridas creadas desde el primer día del ciclo, pide los
+jobs de cada corrida terminada, y factura cada job redondeando hacia arriba
+a minuto entero, con el multiplicador por sistema operativo que aplica
+GitHub. Después imputa cada corrida a una rama:
+
+| Corrida | Se imputa a |
+|---|---|
+| PR sobre una rama común | esa rama, entera |
+| PR de un tren `tren/<fecha>` | sus vagones, 1/N cada uno, leídos de los mensajes `merge: vagón` de la punta del tren |
+| Push a `main` tras mergear un tren | los mismos vagones, 1/N |
+| Push a `main` tras mergear o hacer squash de un PR | la rama de ese PR |
+| Corrida programada o disparada a mano | el cubo `workflow:<nombre>`, sin rama |
+
+El reparto 1/N es la decisión D3: el costo de una entrega es por corrida,
+no por tamaño, así que un vagón de un archivo y uno de veinte pagan lo mismo.
+
+La serie va a `data/actions-minutes/<ciclo>.json`, con totales, minutos por
+rama, minutos por día, cubos sin atribuir y la validación contra el monitor:
+el total medido tiene que quedar a menos del 10 % de los minutos que el
+monitor publica en `GH_SCARCITY_STATUS`. Sin `--all-monitor-repos` mide
+solo el repo del remote, y avisa que el conjunto no es comparable.
+
+Flags: `--cycle AAAA-MM`, `--repos a,b`, `--all-monitor-repos`, `--out <ruta>`.
+Necesita `gh` autenticado y un clon donde existan las puntas de los trenes.
+Una punta que el clon no tiene se imputa al nombre del tren, sin inventar
+vagones. Las pruebas están en `scripts/tests/`.
+
 ## Estructura
 
 ```
+scripts/
+  actions-minutes.mjs          instrumento F1: minutos de Actions por rama
+  tests/                       pruebas de los instrumentos
+data/
+  actions-minutes/             series versionadas por ciclo
 packages/cli/
   bin/brix.js                  punto de entrada y orquestación de flags
   src/commands/                idea, graduate, ci
