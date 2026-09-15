@@ -57,7 +57,7 @@
     },
     "sources": {
       "type": "array",
-      "minItems": 4,
+      "minItems": 0,
       "items": {
         "$ref": "#/$defs/source"
       }

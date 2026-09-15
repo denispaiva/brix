@@ -28,9 +28,9 @@
 
 | Qué                                        | Antes                                            | Ahora                                                                                          |
 | ------------------------------------------ | ------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| Lógica de validación y agregación          | inline en `vc/tools/validate-billing-ledger.mjs` | `vc/brix/packages/cli/finops/lib/` + punto de entrada `vc/brix/packages/cli/finops/engine.mjs` |
+| Lógica de validación y agregación          | inline en `vc/tools/validate-billing-ledger.mjs` | `vc/brix/packages/cli/finops/engine.mjs`                                                        |
 | Schema del ledger                          | `vc/docs/standards/billing-ledger.schema.json`   | `vc/brix/packages/cli/finops/billing-ledger.schema.json`                                       |
-| `vc/tools/validate-billing-ledger.mjs`     | motor completo                                   | envoltorio delgado, reexporta y delega a `engine.mjs`                                          |
+| `vc/tools/validate-billing-ledger.mjs`     | motor completo                                   | envoltorio delgado, importa y delega en `engine.mjs`                                           |
 | Ledger compartido de blends                | `vc/finops/billing-ledger.json` (18 ítems)       | mismo archivo, mismo lugar, 12 ítems (los `project: blends-portfolio`)                         |
 | Ledger de Teyst                            | no existía                                       | `vc/teyst/finops/billing-ledger.json`, 6 ítems (los `project: teyst`)                          |
 | Ledger de Brix / Melquisedec / Pinot Index | no existían                                      | `vc/<proyecto>/finops/billing-ledger.json`, `items: []` (verificado: sin costo propio hoy)     |
@@ -43,7 +43,7 @@ era dueño de la lógica, y el único ledger vivía en `vc/finops/`. Con este
 registro esa dependencia se invierte: el motor —schema, validación y
 agregación— nace y vive en `vc/brix/packages/cli/finops/`, y es
 `vc/tools/validate-billing-ledger.mjs` el que pasa a depender de Brix,
-reducido a un envoltorio delgado que reexporta y delega en `engine.mjs`.
+reducido a un envoltorio delgado que importa y delega en `engine.mjs`.
 Es el mismo argumento que sostiene el registro 0003 para el motor del
 Scoring Skill: el framework compartido no es dueño de la lógica de dominio
 de FinOps, la consume. `vc/tools/validate-versions.mjs` sincroniza su
@@ -65,6 +65,13 @@ ahora apunta a `vc/brix/`, no a `vc/docs/standards/`.
   reemplazar el `allocationPercent` manual de los ítems de IA compartidos
   por un cálculo derivado de F1 vía M2 sigue sin implementar, y depende de
   que esta pieza (1) exista, cosa que este registro ya resuelve.
+- **El dashboard mezcla dos alcances sin decirlo.** El resumen del dashboard
+  (arriba) ya es portfolio-wide, pero la tabla de ítems y las tarjetas por
+  proveedor (abajo) siguen mostrando solo el ledger compartido — un gasto en
+  Teyst o cualquier otro proyecto graduado con costo propio queda sumado
+  arriba pero invisible en el detalle, sin ninguna nota en pantalla que lo
+  explique. Reconciliar el panel completo (relabeling o restructuring por
+  ledger) queda pendiente.
 
 ## Qué NO decide este registro
 

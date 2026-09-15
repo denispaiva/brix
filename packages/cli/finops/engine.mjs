@@ -22,11 +22,10 @@ const SUPPORTED_PROVIDERS = new Set([
   'apple',
   'github',
   'expo',
-  'google-gemini',
 ]);
 
 /**
- * Motor del Scoring... no, del ledger FinOps — validación estructural pura, sin I/O.
+ * Motor del ledger FinOps: valida y agrega los ledgers de billing del portfolio.
  * Mudado desde vc/tools/validate-billing-ledger.mjs por decisión del PO (registro 0004,
  * vc/brix/docs/decisions/). requireCoreProviders gatea SOLO el bloque de providers
  * obligatorios (firebase/cloudflare/anthropic/openai): true para el ledger compartido de
