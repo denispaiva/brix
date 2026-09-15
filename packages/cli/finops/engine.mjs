@@ -1,3 +1,5 @@
+import { readdir, access } from 'node:fs/promises';
+import path from 'node:path';
 
 function nearlyEqual(first, second, tolerance = 0.01) {
   return Math.abs(Number(first) - Number(second)) <= tolerance;
@@ -175,4 +177,69 @@ export function validateLedger(ledger, options = {}) {
     errors,
     summary: { ...expectedSummary, status: expectedStatus, cloudAlert, cloudBillingAlertUsd },
   };
+}
+
+const STATUS_RANK = { pass: 0, attention: 1, blocked: 2 };
+const NUMERIC_SUMMARY_FIELDS = [
+  'totalBudgetUsd', 'totalForecastUsd', 'totalActualUsd',
+  'monthlyFixedCommitmentUsd', 'annualizedFixedCommitmentUsd',
+  'cloudBillingForecastUsd', 'cloudBillingActualUsd',
+  'pendingInputCount', 'unreconciledItemCount',
+];
+
+/**
+ * Suma los summary de todos los ledgers descubiertos y toma el status más severo.
+ * Pura: no vuelve a mirar items ni allocations — cada ledger ya validó su propia
+ * consistencia interna en validateLedger.
+ */
+export function aggregatePortfolio(entries) {
+  const summary = {};
+  for (const field of NUMERIC_SUMMARY_FIELDS) {
+    summary[field] = entries.reduce((total, entry) => total + Number(entry.summary[field] ?? 0), 0);
+  }
+  let status = 'pass';
+  for (const entry of entries) {
+    if (STATUS_RANK[entry.summary.status] > STATUS_RANK[status]) status = entry.summary.status;
+  }
+  return { summary, status };
+}
+
+const NON_PROJECT_DIRS = new Set(['docs', 'finops', 'tooling', 'tools', 'framework']);
+
+async function pathExists(candidate) {
+  try {
+    await access(candidate);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Descubre el ledger compartido de blends y el de cada proyecto bajo vc/*.
+ * Un proyecto es un directorio con `.roadmap.json` propio. vc/framework SÍ tiene
+ * .roadmap.json pero se excluye siempre — su costo ya es el ledger compartido
+ * (ver registro 0004). vc/docs, vc/finops, vc/tooling, vc/tools no tienen
+ * .roadmap.json, así que ya quedan afuera por ese criterio.
+ */
+export async function discoverLedgers(cwd) {
+  const vcDir = path.join(cwd, 'vc');
+  const shared = path.join(vcDir, 'finops', 'billing-ledger.json');
+  const sharedExists = await pathExists(shared);
+
+  const entries = await readdir(vcDir, { withFileTypes: true });
+  const projects = [];
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    if (NON_PROJECT_DIRS.has(entry.name)) continue;
+    const roadmapPath = path.join(vcDir, entry.name, '.roadmap.json');
+    if (!(await pathExists(roadmapPath))) continue;
+    const ledgerPath = path.join(vcDir, entry.name, 'finops', 'billing-ledger.json');
+    projects.push({
+      project: entry.name,
+      path: (await pathExists(ledgerPath)) ? ledgerPath : null,
+    });
+  }
+
+  return { shared: sharedExists ? shared : null, projects };
 }
