@@ -12,6 +12,6 @@
     "entrypoint": "packages/cli/bin/brix.js"
   },
   "score": {
-    "outputDir": "evaluations"
+    "outputDir": "."
   }
 }

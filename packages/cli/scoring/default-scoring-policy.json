@@ -1,0 +1,43 @@
+{
+  "formulaVersion": "1.6.0",
+  "globalWeights": { "community": 0.20, "maintenance": 0.15, "security": 0.20, "fit": 0.20, "engineering": 0.15, "sustainability": 0.10 },
+  "community": {
+    "anchors": { "starsReference": 100000, "contributorsReference": 1000, "forksReference": 10000 },
+    "subfactorWeights": { "stars": 0.40, "contributors": 0.40, "forks": 0.20 }
+  },
+  "maintenance": { "subfactorWeights": { "activityRecency": 0.30, "releaseContinuity": 0.30, "commitContinuity": 0.25, "responseHealth": 0.15 } },
+  "security": { "subfactorWeights": { "vulnerabilityStatus": 0.35, "sourceProvenance": 0.30, "securityHygiene": 0.20, "permissionTransparency": 0.15 } },
+  "fit": { "subfactorWeights": { "capabilityGapCoverage": 0.25, "technicalCompatibility": 0.20, "incrementalValue": 0.20, "adoptionSimplicity": 0.10, "observedAdoption": 0.10, "observedOutcome": 0.15 } },
+  "engineering": { "subfactorWeights": { "automatedVerification": 0.30, "documentationQuality": 0.25, "versioningDiscipline": 0.20, "compatibilityEvidence": 0.15, "dependencySimplicity": 0.10 } },
+  "sustainability": { "subfactorWeights": { "costPredictability": 0.30, "portability": 0.25, "reversibility": 0.25, "operatingOverhead": 0.20 } },
+  "confidenceWeights": { "evidenceCoverage": 0.45, "sourceReliability": 0.25, "evidenceFreshness": 0.15, "evidenceConsistency": 0.15 },
+  "confidenceDerivation": {
+    "freshnessBands": [
+      { "maxDays": 7, "score": 100 },
+      { "maxDays": 30, "score": 85 },
+      { "maxDays": 90, "score": 60 },
+      { "maxDays": 180, "score": 30 }
+    ],
+    "consistencyStates": { "clean": 100, "minor": 70 }
+  },
+  "confidenceBands": { "high": 80, "medium": 50 },
+  "recommendationThresholds": { "advance": 75, "advanceWithReservations": 60 },
+  "risk": {
+    "flagLevels": {
+      "scopedLocalReadOnly": "low",
+      "localWriteReversible": "medium",
+      "newLocalDependencies": "medium",
+      "networkAccess": "high",
+      "credentialsAccess": "high",
+      "sensitiveDataAccess": "high",
+      "remoteWrite": "high",
+      "broadScope": "high",
+      "destructiveActions": "critical",
+      "elevatedPrivileges": "critical",
+      "irreversibleExternalPublication": "critical",
+      "knownCriticalVulnerability": "critical"
+    },
+    "decisionGate": { "requiresExceptionAtOrAbove": "high" }
+  },
+  "review": { "ordinaryDays": 90, "earlyReviewDays": 30 }
+}

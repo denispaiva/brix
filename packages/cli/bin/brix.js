@@ -1,49 +1,34 @@
 #!/usr/bin/env node
 
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { execSync } from 'node:child_process';
 import { generateSpec } from '../src/commands/idea.js';
 import { runGraduate } from '../src/commands/graduate.js';
 import { generateCiWorkflow } from '../src/commands/ci.js';
+import { runScoreCli } from '../scoring/engine.mjs';
 import { parseFlags } from '../src/lib/args.js';
 import { loadConfig } from '../src/lib/config.js';
-
-// Directorio propio del binario (vc/brix/packages/cli/bin/), no el cwd del
-// proceso que lo invoca. Los activos empaquetados con el CLI (el evaluador)
-// se resuelven contra esta ruta para que `brix` funcione igual instalado
-// globalmente, vía npx, o corrido desde cualquier directorio.
-const packageBinDir = fileURLToPath(new URL('.', import.meta.url));
 
 // Precedencia de opciones: flag de línea de comandos > brix.config.json del
 // proyecto > default embebido en cada comando.
 const { flags, positional } = parseFlags(process.argv.slice(2));
-const [command, subCommand, target] = positional;
+const [command, subCommand] = positional;
 const config = loadConfig(process.cwd());
 
 if (command === 'tool' && subCommand === 'score') {
-  if (!target) {
+  // Motor del Scoring Skill (registro de decisión 0003): reexports/decide, no un
+  // solo paquete por línea de comandos — ya no invoca a Gemini como subproceso, sino
+  // el mismo motor que /tool usa dentro de blends. `positional` corta en tres (comando,
+  // subcomando, target) y descarta el resto; acá se necesita todo lo que sigue de
+  // "score" tal cual (evaluate/decide y sus propios flags), así que se toma de
+  // process.argv en crudo en vez de reusar `positional`/`flags`.
+  const scoreArgv = process.argv.slice(2).slice(2);
+  if (scoreArgv.length === 0) {
     console.error(
-      '❌ Error: Debes especificar el paquete. Ejemplo: brix tool score zod',
+      '❌ Error: falta el subcomando. Ejemplo: brix tool score evaluate --input evidencia.json',
     );
     process.exit(1);
   }
-  const evaluatorPath = path.resolve(
-    packageBinDir,
-    '..',
-    'scripts',
-    'score-evaluator.js',
-  );
-  // El evaluador corre como subproceso y lee su propia configuración; solo se
-  // le reenvían los flags explícitos de esta invocación.
-  const forwarded = flags.outDir ? ` --outDir "${flags.outDir}"` : '';
-  try {
-    execSync(`node "${evaluatorPath}" "${target}"${forwarded}`, {
-      stdio: 'inherit',
-    });
-  } catch (error) {
-    process.exit(1);
-  }
+  await runScoreCli(scoreArgv, { cwd: process.cwd() });
+  if (process.exitCode) process.exit(process.exitCode);
 } else if (command === 'idea') {
   await generateSpec(subCommand, {
     defaultInput: config.idea?.defaultInput,
@@ -66,8 +51,14 @@ if (command === 'tool' && subCommand === 'score') {
 🔨 Brix CLI — Vibe Coding Governance OS (v0.1.0)
 
 Comandos disponibles:
-  brix tool score <pkg>    Evalúa una herramienta mediante Gemini API y genera JSON
-      --outDir <dir>         Dónde escribir el JSON de la evaluación
+  brix tool score evaluate --input <archivo>   Evidencia → score, borrador pending
+      --dry-run               Muestra el reporte sin escribir nada
+      --offline                Nunca toca la red: reutiliza el snapshot de comunidad vigente
+  brix tool score decide --id <candidato> --status <estado> --by "<nombre>"
+      --rationale/--review-at/--accepted-risk   Según lo que el estado exija
+      (score.policyPath/outputDir/narrativeDocPath en brix.config.json fijan dónde
+       vive la política y dónde se escriben evaluaciones y narrativa; sin
+       configurarlos, usa la política embebida del paquete y ./evaluations/)
   brix idea <archivo.md>   Convierte notas informales en SPEC.md ejecutable
       --outDir <dir>         Dónde escribir SPEC.md (default: junto al archivo de entrada)
       --org <cuenta>         Cuenta sugerida para el repo de graduación en la spec

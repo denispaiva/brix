@@ -1,7 +1,7 @@
 // Parser mínimo de flags, sin dependencias externas: separa `--flag valor` /
-// `--flag=valor` de los argumentos posicionales. Se usa en bin/brix.js y en
-// script(s) invocados como subproceso (score-evaluator.js) para que ambos
-// entiendan la misma sintaxis de flags sin duplicar lógica.
+// `--flag=valor` de los argumentos posicionales. Se usa en bin/brix.js para los
+// comandos de nivel superior (idea/graduate/ci); `tool score` reenvía su cola de
+// argv sin pasar por acá — ver el comentario en bin/brix.js.
 export function parseFlags(argv) {
   const flags = {};
   const positional = [];

@@ -1,7 +1,7 @@
 # Brix
 
-CLI de gobernanza del ecosistema Vibe Coding. Audita tooling contra una matriz
-de 100 puntos, convierte notas informales en specs ejecutables, gradúa
+CLI de gobernanza del ecosistema Vibe Coding. Audita tooling con el motor del
+Scoring Skill, convierte notas informales en specs ejecutables, gradúa
 subcarpetas de un monorepo a repos independientes y genera el workflow de CI.
 
 El nombre viene de los grados Brix: la medida del azúcar en el mosto que
@@ -20,7 +20,7 @@ anticipa la calidad del vino antes de la cosecha.
 
 - Node.js 24 o superior.
 - `git`, para `brix graduate`.
-- Una API key de Gemini en `GEMINI_API_KEY`, para `brix tool score` y `brix idea`.
+- Una API key de Gemini en `GEMINI_API_KEY`, para `brix idea`. `brix tool score` no la necesita — usa el motor del Scoring Skill, no Gemini.
 
 ## Instalación
 
@@ -39,24 +39,30 @@ npm install --global ./packages/cli
 
 ## Comandos
 
-| Comando | Qué hace |
-|---|---|
-| `brix tool score <pkg>` | Evalúa una herramienta con Gemini contra la matriz y escribe un JSON con puntaje y veredicto. |
-| `brix idea <archivo.md>` | Convierte notas informales en un `SPEC.md` ejecutable. |
-| `brix graduate [path]` | Extrae una subcarpeta con `git subtree split` a una rama lista para empujar a un repo nuevo. |
-| `brix ci` | Genera `.github/workflows/ci.yml`. |
+| Comando                                                                     | Qué hace                                                                                     |
+| --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `brix tool score evaluate --input <archivo>`                                | Evidencia real → score, borrador `pending`.                                                  |
+| `brix tool score decide --id <candidato> --status <estado> --by "<nombre>"` | Registra la decisión humana sobre una evaluación pendiente.                                  |
+| `brix idea <archivo.md>`                                                    | Convierte notas informales en un `SPEC.md` ejecutable.                                       |
+| `brix graduate [path]`                                                      | Extrae una subcarpeta con `git subtree split` a una rama lista para empujar a un repo nuevo. |
+| `brix ci`                                                                   | Genera `.github/workflows/ci.yml`.                                                           |
 
 ### Flags
 
-| Comando | Flag | Efecto |
-|---|---|---|
-| `tool score` | `--outDir <dir>` | Dónde escribir el JSON de la evaluación. |
-| `idea` | `--outDir <dir>` | Dónde escribir `SPEC.md`. Por defecto, junto al archivo de entrada. |
-| `idea` | `--org <cuenta>` | Cuenta sugerida para el repo de graduación dentro de la spec. |
-| `graduate` | `--branch <nombre>` | Rama de export. Por defecto, `graduation-export`. |
-| `graduate` | `--remote <git-url>` | Repo destino que aparece en la instrucción de push. |
-| `ci` | `--watch <globs>` | Rutas que disparan el workflow, separadas por coma. |
-| `ci` | `--entrypoint <path>` | Ruta al binario de brix dentro del repo destino. |
+| Comando               | Flag                                          | Efecto                                                               |
+| --------------------- | --------------------------------------------- | -------------------------------------------------------------------- |
+| `tool score evaluate` | `--input <archivo>`                           | Archivo de evidencia a evaluar (obligatorio).                        |
+| `tool score evaluate` | `--dry-run`                                   | Muestra el reporte sin escribir nada.                                |
+| `tool score evaluate` | `--offline`                                   | Nunca toca la red: reutiliza el snapshot de comunidad vigente.       |
+| `tool score decide`   | `--id / --status / --by`                      | Candidato, veredicto y quién decide (los tres obligatorios).         |
+| `tool score decide`   | `--rationale / --review-at / --accepted-risk` | Según lo que el estado exija.                                        |
+| `tool score *`        | `--policy / --output-dir / --narrative-doc`   | Sobrescriben lo que `brix.config.json` declare para esta invocación. |
+| `idea`                | `--outDir <dir>`                              | Dónde escribir `SPEC.md`. Por defecto, junto al archivo de entrada.  |
+| `idea`                | `--org <cuenta>`                              | Cuenta sugerida para el repo de graduación dentro de la spec.        |
+| `graduate`            | `--branch <nombre>`                           | Rama de export. Por defecto, `graduation-export`.                    |
+| `graduate`            | `--remote <git-url>`                          | Repo destino que aparece en la instrucción de push.                  |
+| `ci`                  | `--watch <globs>`                             | Rutas que disparan el workflow, separadas por coma.                  |
+| `ci`                  | `--entrypoint <path>`                         | Ruta al binario de brix dentro del repo destino.                     |
 
 Los flags aceptan tanto `--flag valor` como `--flag=valor`.
 
@@ -85,7 +91,9 @@ Las opciones se resuelven en este orden: flag de línea de comandos, después
     "entrypoint": "packages/cli/bin/brix.js"
   },
   "score": {
-    "outputDir": "evaluations"
+    "outputDir": ".",
+    "policyPath": "mi-politica-de-scoring.json",
+    "narrativeDocPath": "docs/evaluaciones.md"
   }
 }
 ```
@@ -94,21 +102,31 @@ Las opciones se resuelven en este orden: flag de línea de comandos, después
 propios de cada repo. Sin carpeta, el comando falla con una indicación; sin
 remote, imprime el push con el destino a completar.
 
-## La matriz de scoring
+`score.outputDir` es el directorio que CONTIENE la carpeta `evaluations/`
+(no la carpeta misma) — sin declararlo, cae en el propio directorio de
+invocación. `score.narrativeDocPath` es opcional: sin declararlo, `evaluate`
+y `decide` simplemente se saltean la actualización de doc narrativo.
 
-La matriz vive en [`packages/cli/scoring/matrix.md`](packages/cli/scoring/matrix.md)
-y viaja empaquetada con el CLI. Pondera cinco criterios sobre 100 puntos y
-define tres veredictos:
+## El motor de scoring
 
-| Puntaje | Veredicto |
-|---|---|
-| 80 o más | Aprobado |
-| 50 a 79 | Sandbox |
-| Menos de 50 | Rechazado |
+`brix tool score` usa el mismo motor del Scoring Skill que blends —
+`packages/cli/scoring/engine.mjs` — con seis factores ponderados
+(comunidad, mantenimiento, seguridad, encaje, ingeniería, sostenibilidad),
+una banda de confianza por evidencia disponible y una recomendación base
+(`advance` / `advance_with_reservations` / `do_not_advance`). Los pesos y
+umbrales vienen de una política JSON: `score.policyPath` en
+`brix.config.json` para apuntar a la propia, o
+[`packages/cli/scoring/default-scoring-policy.json`](packages/cli/scoring/default-scoring-policy.json)
+como default embebido si no se declara ninguna.
 
-Las evaluaciones que genera `tool score` son registros de gobernanza del
-proyecto que invoca al CLI, no del paquete. Se escriben relativas al
-directorio de trabajo y conviene commitearlas.
+`evaluate` nunca inventa un puntaje: lee un archivo de evidencia con
+subfactores ya calificados por quien evalúa (con `rationale` y
+`evidenceRefs` cuando el método es `rubric`), calcula el score y deja el
+registro en `pending` — la decisión de avanzar, sandboxear o descartar la
+toma un humano con `decide`. Las evaluaciones que genera `tool score` son
+registros de gobernanza del proyecto que invoca al CLI, no del paquete. Se
+escriben relativas al directorio de trabajo (o a `score.outputDir`) y
+conviene commitearlas.
 
 ## Instrumentos de la Fase 0
 
@@ -128,13 +146,13 @@ jobs de cada corrida terminada, y factura cada job redondeando hacia arriba
 a minuto entero, con el multiplicador por sistema operativo que aplica
 GitHub. Después imputa cada corrida a una rama:
 
-| Corrida | Se imputa a |
-|---|---|
-| PR sobre una rama común | esa rama, entera |
-| PR de un tren `tren/<fecha>` | sus vagones, 1/N cada uno, leídos de los mensajes `merge: vagón` de la punta del tren |
-| Push a `main` tras mergear un tren | los mismos vagones, 1/N |
-| Push a `main` tras mergear o hacer squash de un PR | la rama de ese PR |
-| Corrida programada o disparada a mano | el cubo `workflow:<nombre>`, sin rama |
+| Corrida                                            | Se imputa a                                                                           |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| PR sobre una rama común                            | esa rama, entera                                                                      |
+| PR de un tren `tren/<fecha>`                       | sus vagones, 1/N cada uno, leídos de los mensajes `merge: vagón` de la punta del tren |
+| Push a `main` tras mergear un tren                 | los mismos vagones, 1/N                                                               |
+| Push a `main` tras mergear o hacer squash de un PR | la rama de ese PR                                                                     |
+| Corrida programada o disparada a mano              | el cubo `workflow:<nombre>`, sin rama                                                 |
 
 El reparto 1/N es la decisión D3: el costo de una entrega es por corrida,
 no por tamaño, así que un vagón de un archivo y uno de veinte pagan lo mismo.
@@ -213,11 +231,11 @@ Sin esto, un día con sesiones en paralelo llegaba a 22,8 horas.
 
 Qué excluye, y cómo lo reconoce:
 
-| Excluido | Cómo se reconoce |
-|---|---|
-| Notificaciones de tareas en segundo plano | `origin.kind` es `task-notification` |
-| Sospechosos de tarea programada | el turno corre en modo de permisos `default`, que las sesiones interactivas casi no usan; es una heurística declarada |
-| Origen desconocido | versiones viejas sin campo `origin`; se cuentan aparte, sin sumar |
+| Excluido                                  | Cómo se reconoce                                                                                                      |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Notificaciones de tareas en segundo plano | `origin.kind` es `task-notification`                                                                                  |
+| Sospechosos de tarea programada           | el turno corre en modo de permisos `default`, que las sesiones interactivas casi no usan; es una heurística declarada |
+| Origen desconocido                        | versiones viejas sin campo `origin`; se cuentan aparte, sin sumar                                                     |
 
 La serie en `data/po-attention/<ciclo>.json` trae turnos y sesiones, y minutos
 con piso y techo por rama y por día, además de los excluidos, los topes usados
