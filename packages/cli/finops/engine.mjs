@@ -1,4 +1,4 @@
-import { readdir, access } from 'node:fs/promises';
+import { readdir, access, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 function nearlyEqual(first, second, tolerance = 0.01) {
@@ -242,4 +242,41 @@ export async function discoverLedgers(cwd) {
   }
 
   return { shared: sharedExists ? shared : null, projects };
+}
+
+/**
+ * Orquesta discoverLedgers + validateLedger + aggregatePortfolio sobre el repo real.
+ * El ledger compartido (vc/finops/) valida con requireCoreProviders: true; cualquier
+ * ledger de proyecto, con false. Un proyecto sin finops/billing-ledger.json es un
+ * error de validación, no se saltea.
+ */
+export async function runPortfolioValidation(cwd) {
+  const { shared, projects } = await discoverLedgers(cwd);
+  const errors = [];
+  const validated = [];
+
+  if (!shared) {
+    errors.push('vc/finops/billing-ledger.json: no existe — el ledger compartido es obligatorio.');
+  } else {
+    const label = path.relative(cwd, shared);
+    const ledger = JSON.parse(await readFile(shared, 'utf8'));
+    const { errors: ledgerErrors, summary } = validateLedger(ledger, { requireCoreProviders: true });
+    for (const error of ledgerErrors) errors.push(`${label}: ${error}`);
+    validated.push({ label, summary });
+  }
+
+  for (const { project, path: ledgerPath } of projects) {
+    if (!ledgerPath) {
+      errors.push(`vc/${project}/finops/billing-ledger.json: falta — todo proyecto necesita su carpeta finops/.`);
+      continue;
+    }
+    const label = path.relative(cwd, ledgerPath);
+    const ledger = JSON.parse(await readFile(ledgerPath, 'utf8'));
+    const { errors: ledgerErrors, summary } = validateLedger(ledger, { requireCoreProviders: false });
+    for (const error of ledgerErrors) errors.push(`${label}: ${error}`);
+    validated.push({ label, summary });
+  }
+
+  const { summary, status } = aggregatePortfolio(validated);
+  return { errors, summary, status };
 }
