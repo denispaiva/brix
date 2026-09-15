@@ -308,11 +308,13 @@ export function aggregatePortfolio(entries) {
     );
   }
   let status = 'pass';
+  const alerts = [];
   for (const entry of entries) {
     if (STATUS_RANK[entry.summary.status] > STATUS_RANK[status])
       status = entry.summary.status;
+    if (entry.summary.cloudAlert) alerts.push(entry.label);
   }
-  return { summary, status };
+  return { summary: { ...summary, alerts }, status };
 }
 
 const NON_PROJECT_DIRS = new Set([

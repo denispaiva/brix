@@ -56,3 +56,25 @@ test('aggregatePortfolio: sin ledgers, status pass y todo en cero', () => {
   assert.equal(status, 'pass');
   assert.equal(agg.totalBudgetUsd, 0);
 });
+
+test('aggregatePortfolio: alerts junta el label de cada entry con cloudAlert', () => {
+  const { summary: agg } = aggregatePortfolio([
+    {
+      label: 'vc/finops/billing-ledger.json',
+      summary: summary({ cloudAlert: true }),
+    },
+    {
+      label: 'vc/teyst/finops/billing-ledger.json',
+      summary: summary({ cloudAlert: false }),
+    },
+  ]);
+  assert.deepEqual(agg.alerts, ['vc/finops/billing-ledger.json']);
+});
+
+test('aggregatePortfolio: alerts vacío si ningún ledger dispara cloudAlert', () => {
+  const { summary: agg } = aggregatePortfolio([
+    { label: 'blends', summary: summary({ cloudAlert: false }) },
+    { label: 'teyst', summary: summary({ cloudAlert: false }) },
+  ]);
+  assert.deepEqual(agg.alerts, []);
+});
