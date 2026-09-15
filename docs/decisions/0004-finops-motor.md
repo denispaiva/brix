@@ -26,14 +26,14 @@
 
 ## Qué se mudó
 
-| Qué | Antes | Ahora |
-|---|---|---|
-| Lógica de validación y agregación | inline en `vc/tools/validate-billing-ledger.mjs` | `vc/brix/packages/cli/finops/lib/` + punto de entrada `vc/brix/packages/cli/finops/engine.mjs` |
-| Schema del ledger | `vc/docs/standards/billing-ledger.schema.json` | `vc/brix/packages/cli/finops/billing-ledger.schema.json` |
-| `vc/tools/validate-billing-ledger.mjs` | motor completo | envoltorio delgado, reexporta y delega a `engine.mjs` |
-| Ledger compartido de blends | `vc/finops/billing-ledger.json` (18 ítems) | mismo archivo, mismo lugar, 12 ítems (los `project: blends-portfolio`) |
-| Ledger de Teyst | no existía | `vc/teyst/finops/billing-ledger.json`, 6 ítems (los `project: teyst`) |
-| Ledger de Brix / Melquisedec / Pinot Index | no existían | `vc/<proyecto>/finops/billing-ledger.json`, `items: []` (verificado: sin costo propio hoy) |
+| Qué                                        | Antes                                            | Ahora                                                                                          |
+| ------------------------------------------ | ------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| Lógica de validación y agregación          | inline en `vc/tools/validate-billing-ledger.mjs` | `vc/brix/packages/cli/finops/lib/` + punto de entrada `vc/brix/packages/cli/finops/engine.mjs` |
+| Schema del ledger                          | `vc/docs/standards/billing-ledger.schema.json`   | `vc/brix/packages/cli/finops/billing-ledger.schema.json`                                       |
+| `vc/tools/validate-billing-ledger.mjs`     | motor completo                                   | envoltorio delgado, reexporta y delega a `engine.mjs`                                          |
+| Ledger compartido de blends                | `vc/finops/billing-ledger.json` (18 ítems)       | mismo archivo, mismo lugar, 12 ítems (los `project: blends-portfolio`)                         |
+| Ledger de Teyst                            | no existía                                       | `vc/teyst/finops/billing-ledger.json`, 6 ítems (los `project: teyst`)                          |
+| Ledger de Brix / Melquisedec / Pinot Index | no existían                                      | `vc/<proyecto>/finops/billing-ledger.json`, `items: []` (verificado: sin costo propio hoy)     |
 
 ## Inversión de dependencia
 

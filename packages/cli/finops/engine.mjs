@@ -10,8 +10,18 @@ function sum(items, field) {
 }
 
 const SUPPORTED_PROVIDERS = new Set([
-  'firebase', 'cloudflare', 'anthropic', 'openai', 'moonshot', 'namecheap',
-  'google-workspace', 'google-one', 'google-play', 'apple', 'github', 'expo',
+  'firebase',
+  'cloudflare',
+  'anthropic',
+  'openai',
+  'moonshot',
+  'namecheap',
+  'google-workspace',
+  'google-one',
+  'google-play',
+  'apple',
+  'github',
+  'expo',
   'google-gemini',
 ]);
 
@@ -33,7 +43,9 @@ export function validateLedger(ledger, options = {}) {
     ledger.workbookUrl !== undefined &&
     !/^https:\/\/docs\.google\.com\/spreadsheets\//.test(ledger.workbookUrl)
   ) {
-    report('workbookUrl debe apuntar a una hoja de Google Sheets (https://docs.google.com/spreadsheets/...).');
+    report(
+      'workbookUrl debe apuntar a una hoja de Google Sheets (https://docs.google.com/spreadsheets/...).',
+    );
   }
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(ledger.period ?? ''))
     report('period debe usar YYYY-MM.');
@@ -41,7 +53,9 @@ export function validateLedger(ledger, options = {}) {
   if (!ledger.owner) report('owner es obligatorio.');
 
   const items = Array.isArray(ledger.items) ? ledger.items : [];
-  const allocations = Array.isArray(ledger.allocations) ? ledger.allocations : [];
+  const allocations = Array.isArray(ledger.allocations)
+    ? ledger.allocations
+    : [];
   const sources = Array.isArray(ledger.sources) ? ledger.sources : [];
   const itemMap = new Map();
   const sourceMap = new Map();
@@ -62,29 +76,56 @@ export function validateLedger(ledger, options = {}) {
     itemMap.set(item.id, item);
     if (!SUPPORTED_PROVIDERS.has(item.provider))
       report(`${item.id}: provider no soportado.`);
-    if (!new Set(['fixed-subscription', 'usage-based', 'one-time']).has(item.billingModel))
+    if (
+      !new Set(['fixed-subscription', 'usage-based', 'one-time']).has(
+        item.billingModel,
+      )
+    )
       report(`${item.id}: billingModel inválido.`);
     if (!new Set(['agents', 'cloud', 'tooling', 'external']).has(item.costPool))
       report(`${item.id}: costPool inválido.`);
-    for (const field of ['quantity', 'unitPriceUsd', 'budgetUsd', 'forecastUsd', 'actualUsd']) {
-      if (!(Number(item[field]) >= 0)) report(`${item.id}.${field} debe ser no negativo.`);
+    for (const field of [
+      'quantity',
+      'unitPriceUsd',
+      'budgetUsd',
+      'forecastUsd',
+      'actualUsd',
+    ]) {
+      if (!(Number(item[field]) >= 0))
+        report(`${item.id}.${field} debe ser no negativo.`);
     }
-    if (!(Number(item.quantity) > 0)) report(`${item.id}.quantity debe ser positivo.`);
+    if (!(Number(item.quantity) > 0))
+      report(`${item.id}.quantity debe ser positivo.`);
     if (!new Set(['pending', 'verified']).has(item.inputStatus))
       report(`${item.id}: inputStatus inválido.`);
-    if (!new Set(['pending', 'reconciled', 'disputed']).has(item.reconciliationStatus))
+    if (
+      !new Set(['pending', 'reconciled', 'disputed']).has(
+        item.reconciliationStatus,
+      )
+    )
       report(`${item.id}: reconciliationStatus inválido.`);
     const source = sourceMap.get(item.sourceRef);
     if (!source) report(`${item.id}: sourceRef ${item.sourceRef} no existe.`);
     if (source && source.provider !== item.provider)
       report(`${item.id}: sourceRef pertenece a otro provider.`);
-    if (item.billingModel === 'fixed-subscription' && item.inputStatus === 'verified') {
-      const expectedForecast = Number(item.quantity) * Number(item.unitPriceUsd);
+    if (
+      item.billingModel === 'fixed-subscription' &&
+      item.inputStatus === 'verified'
+    ) {
+      const expectedForecast =
+        Number(item.quantity) * Number(item.unitPriceUsd);
       if (!nearlyEqual(item.forecastUsd, expectedForecast))
-        report(`${item.id}: forecastUsd debe reconciliar quantity × unitPriceUsd (${expectedForecast}).`);
+        report(
+          `${item.id}: forecastUsd debe reconciliar quantity × unitPriceUsd (${expectedForecast}).`,
+        );
     }
-    if (Number(item.actualUsd) > 0 && (item.reconciliationStatus !== 'reconciled' || !item.invoiceEvidence)) {
-      report(`${item.id}: un actual positivo requiere reconciliationStatus reconciled e invoiceEvidence.`);
+    if (
+      Number(item.actualUsd) > 0 &&
+      (item.reconciliationStatus !== 'reconciled' || !item.invoiceEvidence)
+    ) {
+      report(
+        `${item.id}: un actual positivo requiere reconciliationStatus reconciled e invoiceEvidence.`,
+      );
     }
     if (item.reconciliationStatus === 'reconciled' && !item.invoiceEvidence)
       report(`${item.id}: reconciled requiere invoiceEvidence.`);
@@ -95,14 +136,36 @@ export function validateLedger(ledger, options = {}) {
       if (!items.some((item) => item.provider === provider))
         report(`Falta el provider obligatorio ${provider}.`);
     }
-    if (!items.some((item) => item.provider === 'firebase' && item.billingModel === 'usage-based'))
+    if (
+      !items.some(
+        (item) =>
+          item.provider === 'firebase' && item.billingModel === 'usage-based',
+      )
+    )
       report('Firebase debe registrarse como usage-based.');
-    if (!items.some((item) => item.provider === 'cloudflare' && item.billingModel === 'fixed-subscription'))
+    if (
+      !items.some(
+        (item) =>
+          item.provider === 'cloudflare' &&
+          item.billingModel === 'fixed-subscription',
+      )
+    )
       report('Cloudflare requiere una línea separada para plan y add-ons.');
-    if (!items.some((item) => item.provider === 'cloudflare' && item.billingModel === 'usage-based'))
+    if (
+      !items.some(
+        (item) =>
+          item.provider === 'cloudflare' && item.billingModel === 'usage-based',
+      )
+    )
       report('Cloudflare requiere una línea separada para usage y overages.');
     for (const provider of ['anthropic', 'openai']) {
-      if (!items.some((item) => item.provider === provider && item.billingModel === 'fixed-subscription'))
+      if (
+        !items.some(
+          (item) =>
+            item.provider === provider &&
+            item.billingModel === 'fixed-subscription',
+        )
+      )
         report(`${provider} debe registrarse como fixed-subscription.`);
     }
   }
@@ -114,15 +177,28 @@ export function validateLedger(ledger, options = {}) {
       report(`Allocation ID ausente o duplicado: ${allocation.id}.`);
     allocationIds.add(allocation.id);
     if (!itemMap.has(allocation.billingItemId))
-      report(`${allocation.id}: billingItemId ${allocation.billingItemId} no existe.`);
-    if (!(Number(allocation.allocationPercent) > 0 && Number(allocation.allocationPercent) <= 100))
+      report(
+        `${allocation.id}: billingItemId ${allocation.billingItemId} no existe.`,
+      );
+    if (!(
+      Number(allocation.allocationPercent) > 0 &&
+      Number(allocation.allocationPercent) <= 100
+    ))
       report(`${allocation.id}: allocationPercent debe estar entre 0 y 100.`);
-    for (const field of ['project', 'environment', 'owner', 'costCenter', 'version']) {
-      if (!allocation[field]) report(`${allocation.id}.${field} es obligatorio.`);
+    for (const field of [
+      'project',
+      'environment',
+      'owner',
+      'costCenter',
+      'version',
+    ]) {
+      if (!allocation[field])
+        report(`${allocation.id}.${field} es obligatorio.`);
     }
     allocationByItem.set(
       allocation.billingItemId,
-      (allocationByItem.get(allocation.billingItemId) ?? 0) + Number(allocation.allocationPercent ?? 0),
+      (allocationByItem.get(allocation.billingItemId) ?? 0) +
+        Number(allocation.allocationPercent ?? 0),
     );
   }
   for (const item of items) {
@@ -142,19 +218,33 @@ export function validateLedger(ledger, options = {}) {
   const cloudBillingForecastUsd = sum(cloudItems, 'forecastUsd');
   const cloudBillingActualUsd = sum(cloudItems, 'actualUsd');
   const cloudBillingAlertUsd = Number(ledger.controls?.cloudBillingAlertUsd);
-  const cloudAlert = cloudBillingActualUsd > cloudBillingAlertUsd || cloudBillingForecastUsd > cloudBillingAlertUsd;
-  const pendingInputCount = items.filter((item) => item.inputStatus === 'pending').length;
-  const unreconciledItemCount = items.filter((item) => item.reconciliationStatus !== 'reconciled').length;
-  const overBudget = items.some((item) => Number(item.actualUsd) > Number(item.budgetUsd));
+  const cloudAlert =
+    cloudBillingActualUsd > cloudBillingAlertUsd ||
+    cloudBillingForecastUsd > cloudBillingAlertUsd;
+  const pendingInputCount = items.filter(
+    (item) => item.inputStatus === 'pending',
+  ).length;
+  const unreconciledItemCount = items.filter(
+    (item) => item.reconciliationStatus !== 'reconciled',
+  ).length;
+  const overBudget = items.some(
+    (item) => Number(item.actualUsd) > Number(item.budgetUsd),
+  );
   const expectedStatus = overBudget
     ? 'blocked'
     : cloudAlert || pendingInputCount > 0 || unreconciledItemCount > 0
       ? 'attention'
       : 'pass';
   const expectedSummary = {
-    totalBudgetUsd, totalForecastUsd, totalActualUsd, monthlyFixedCommitmentUsd,
-    annualizedFixedCommitmentUsd, cloudBillingForecastUsd, cloudBillingActualUsd,
-    pendingInputCount, unreconciledItemCount,
+    totalBudgetUsd,
+    totalForecastUsd,
+    totalActualUsd,
+    monthlyFixedCommitmentUsd,
+    annualizedFixedCommitmentUsd,
+    cloudBillingForecastUsd,
+    cloudBillingActualUsd,
+    pendingInputCount,
+    unreconciledItemCount,
   };
   for (const [field, expected] of Object.entries(expectedSummary)) {
     if (!nearlyEqual(ledger.summary?.[field], expected))
@@ -163,28 +253,46 @@ export function validateLedger(ledger, options = {}) {
   if (ledger.summary?.status !== expectedStatus)
     report(`summary.status debe ser ${expectedStatus}.`);
 
-  for (const field of ['separateFixedAndUsage', 'actualsRequireInvoiceEvidence', 'allocationRequired', 'humanApprovalForCommitments']) {
-    if (ledger.controls?.[field] !== true) report(`controls.${field} debe estar habilitado.`);
+  for (const field of [
+    'separateFixedAndUsage',
+    'actualsRequireInvoiceEvidence',
+    'allocationRequired',
+    'humanApprovalForCommitments',
+  ]) {
+    if (ledger.controls?.[field] !== true)
+      report(`controls.${field} debe estar habilitado.`);
   }
   if (ledger.controls?.providerReviewCadence !== 'monthly')
     report('controls.providerReviewCadence debe ser monthly.');
   if (!(cloudBillingAlertUsd > 0))
     report('controls.cloudBillingAlertUsd debe ser un umbral positivo en USD.');
   if (!(Number(ledger.controls?.budgetGuardrailUsd) > 0))
-    report('controls.budgetGuardrailUsd debe declarar el budget guardrail por cuenta de billing en USD.');
+    report(
+      'controls.budgetGuardrailUsd debe declarar el budget guardrail por cuenta de billing en USD.',
+    );
 
   return {
     errors,
-    summary: { ...expectedSummary, status: expectedStatus, cloudAlert, cloudBillingAlertUsd },
+    summary: {
+      ...expectedSummary,
+      status: expectedStatus,
+      cloudAlert,
+      cloudBillingAlertUsd,
+    },
   };
 }
 
 const STATUS_RANK = { pass: 0, attention: 1, blocked: 2 };
 const NUMERIC_SUMMARY_FIELDS = [
-  'totalBudgetUsd', 'totalForecastUsd', 'totalActualUsd',
-  'monthlyFixedCommitmentUsd', 'annualizedFixedCommitmentUsd',
-  'cloudBillingForecastUsd', 'cloudBillingActualUsd',
-  'pendingInputCount', 'unreconciledItemCount',
+  'totalBudgetUsd',
+  'totalForecastUsd',
+  'totalActualUsd',
+  'monthlyFixedCommitmentUsd',
+  'annualizedFixedCommitmentUsd',
+  'cloudBillingForecastUsd',
+  'cloudBillingActualUsd',
+  'pendingInputCount',
+  'unreconciledItemCount',
 ];
 
 /**
@@ -195,16 +303,26 @@ const NUMERIC_SUMMARY_FIELDS = [
 export function aggregatePortfolio(entries) {
   const summary = {};
   for (const field of NUMERIC_SUMMARY_FIELDS) {
-    summary[field] = entries.reduce((total, entry) => total + Number(entry.summary[field] ?? 0), 0);
+    summary[field] = entries.reduce(
+      (total, entry) => total + Number(entry.summary[field] ?? 0),
+      0,
+    );
   }
   let status = 'pass';
   for (const entry of entries) {
-    if (STATUS_RANK[entry.summary.status] > STATUS_RANK[status]) status = entry.summary.status;
+    if (STATUS_RANK[entry.summary.status] > STATUS_RANK[status])
+      status = entry.summary.status;
   }
   return { summary, status };
 }
 
-const NON_PROJECT_DIRS = new Set(['docs', 'finops', 'tooling', 'tools', 'framework']);
+const NON_PROJECT_DIRS = new Set([
+  'docs',
+  'finops',
+  'tooling',
+  'tools',
+  'framework',
+]);
 
 async function pathExists(candidate) {
   try {
@@ -234,7 +352,12 @@ export async function discoverLedgers(cwd) {
     if (NON_PROJECT_DIRS.has(entry.name)) continue;
     const roadmapPath = path.join(vcDir, entry.name, '.roadmap.json');
     if (!(await pathExists(roadmapPath))) continue;
-    const ledgerPath = path.join(vcDir, entry.name, 'finops', 'billing-ledger.json');
+    const ledgerPath = path.join(
+      vcDir,
+      entry.name,
+      'finops',
+      'billing-ledger.json',
+    );
     projects.push({
       project: entry.name,
       path: (await pathExists(ledgerPath)) ? ledgerPath : null,
@@ -256,23 +379,31 @@ export async function runPortfolioValidation(cwd) {
   const validated = [];
 
   if (!shared) {
-    errors.push('vc/finops/billing-ledger.json: no existe — el ledger compartido es obligatorio.');
+    errors.push(
+      'vc/finops/billing-ledger.json: no existe — el ledger compartido es obligatorio.',
+    );
   } else {
     const label = path.relative(cwd, shared);
     const ledger = JSON.parse(await readFile(shared, 'utf8'));
-    const { errors: ledgerErrors, summary } = validateLedger(ledger, { requireCoreProviders: true });
+    const { errors: ledgerErrors, summary } = validateLedger(ledger, {
+      requireCoreProviders: true,
+    });
     for (const error of ledgerErrors) errors.push(`${label}: ${error}`);
     validated.push({ label, summary });
   }
 
   for (const { project, path: ledgerPath } of projects) {
     if (!ledgerPath) {
-      errors.push(`vc/${project}/finops/billing-ledger.json: falta — todo proyecto necesita su carpeta finops/.`);
+      errors.push(
+        `vc/${project}/finops/billing-ledger.json: falta — todo proyecto necesita su carpeta finops/.`,
+      );
       continue;
     }
     const label = path.relative(cwd, ledgerPath);
     const ledger = JSON.parse(await readFile(ledgerPath, 'utf8'));
-    const { errors: ledgerErrors, summary } = validateLedger(ledger, { requireCoreProviders: false });
+    const { errors: ledgerErrors, summary } = validateLedger(ledger, {
+      requireCoreProviders: false,
+    });
     for (const error of ledgerErrors) errors.push(`${label}: ${error}`);
     validated.push({ label, summary });
   }

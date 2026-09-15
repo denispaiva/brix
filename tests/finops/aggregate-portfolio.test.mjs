@@ -5,10 +5,16 @@ import { aggregatePortfolio } from '../../packages/cli/finops/engine.mjs';
 
 function summary(overrides) {
   return {
-    totalBudgetUsd: 0, totalForecastUsd: 0, totalActualUsd: 0,
-    monthlyFixedCommitmentUsd: 0, annualizedFixedCommitmentUsd: 0,
-    cloudBillingForecastUsd: 0, cloudBillingActualUsd: 0,
-    pendingInputCount: 0, unreconciledItemCount: 0, status: 'pass',
+    totalBudgetUsd: 0,
+    totalForecastUsd: 0,
+    totalActualUsd: 0,
+    monthlyFixedCommitmentUsd: 0,
+    annualizedFixedCommitmentUsd: 0,
+    cloudBillingForecastUsd: 0,
+    cloudBillingActualUsd: 0,
+    pendingInputCount: 0,
+    unreconciledItemCount: 0,
+    status: 'pass',
     ...overrides,
   };
 }
