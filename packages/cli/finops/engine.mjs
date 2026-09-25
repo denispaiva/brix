@@ -22,6 +22,7 @@ const SUPPORTED_PROVIDERS = new Set([
   'apple',
   'github',
   'expo',
+  'google-gemini',
 ]);
 
 /**
@@ -36,8 +37,8 @@ export function validateLedger(ledger, options = {}) {
   const errors = [];
   const report = (message) => errors.push(message);
 
-  if (ledger.schemaVersion !== '1.5.0')
-    report('El billing ledger debe usar schemaVersion 1.5.0.');
+  if (ledger.schemaVersion !== '1.6.0')
+    report('El billing ledger debe usar schemaVersion 1.6.0.');
   if (
     ledger.workbookUrl !== undefined &&
     !/^https:\/\/docs\.google\.com\/spreadsheets\//.test(ledger.workbookUrl)

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://blends.local/schemas/billing-ledger/1.5.0",
+  "$id": "https://blends.local/schemas/billing-ledger/1.6.0",
   "title": "Blends FinOps Billing Ledger",
   "type": "object",
   "required": [
@@ -21,10 +21,10 @@
       "type": "string"
     },
     "schemaVersion": {
-      "const": "1.5.0"
+      "const": "1.6.0"
     },
     "frameworkVersion": {
-      "const": "1.73.0"
+      "const": "1.83.0"
     },
     "period": {
       "type": "string",
@@ -108,7 +108,8 @@
             "google-play",
             "apple",
             "github",
-            "expo"
+            "expo",
+            "google-gemini"
           ]
         },
         "service": {
@@ -239,7 +240,8 @@
             "google-play",
             "apple",
             "github",
-            "expo"
+            "expo",
+            "google-gemini"
           ]
         },
         "url": {

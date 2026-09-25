@@ -4,7 +4,7 @@ import { validateLedger } from '../../packages/cli/finops/engine.mjs';
 
 function fullLedger(overrides = {}) {
   return {
-    schemaVersion: '1.5.0',
+    schemaVersion: '1.6.0',
     frameworkVersion: '1.72.0',
     period: '2026-09',
     currency: 'USD',
