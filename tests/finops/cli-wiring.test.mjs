@@ -45,7 +45,7 @@ test('validate-billing-ledger.mjs con un archivo puntual: ledger inválido sale 
 function minimalValidLedger() {
   return {
     schemaVersion: '1.6.0',
-    frameworkVersion: '1.83.0',
+    frameworkVersion: '1.84.0',
     period: '2026-09',
     currency: 'USD',
     owner: 'Test',
