@@ -1,6 +1,6 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
-import crypto from "node:crypto";
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import crypto from 'node:crypto';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -9,18 +9,27 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
  * Solo "low" usa el plazo corto — "medium" y "high" comparten el plazo ordinario.
  */
 export function computeExpiresAt(observedAtIso, confidenceBand, policy) {
-  const days = confidenceBand === "low" ? policy.review.earlyReviewDays : policy.review.ordinaryDays;
+  const days =
+    confidenceBand === 'low'
+      ? policy.review.earlyReviewDays
+      : policy.review.ordinaryDays;
   const observedAt = new Date(observedAtIso);
   return new Date(observedAt.getTime() + days * MS_PER_DAY).toISOString();
 }
 
 const REQUIRED_FIELDS_BY_STATUS = {
-  approved: ["decidedBy", "decidedAt"],
-  approved_with_exception: ["decidedBy", "decidedAt", "rationale", "reviewAt"],
-  rejected: ["decidedBy", "decidedAt", "rationale"],
-  deferred: ["decidedBy", "rationale", "reviewAt"],
+  approved: ['decidedBy', 'decidedAt'],
+  approved_with_exception: ['decidedBy', 'decidedAt', 'rationale', 'reviewAt'],
+  rejected: ['decidedBy', 'decidedAt', 'rationale'],
+  deferred: ['decidedBy', 'rationale', 'reviewAt'],
 };
-const VALID_STATUSES = new Set(["pending", "approved", "approved_with_exception", "rejected", "deferred"]);
+const VALID_STATUSES = new Set([
+  'pending',
+  'approved',
+  'approved_with_exception',
+  'rejected',
+  'deferred',
+]);
 
 /**
  * Valida los campos obligatorios por estado de decisión humana, exactamente como los
@@ -31,27 +40,31 @@ export function validateHumanDecision(decision) {
   if (!VALID_STATUSES.has(decision.status)) {
     return { valid: false, errors: [`status inválido: ${decision.status}`] };
   }
-  if (decision.status === "pending") return { valid: true, errors: [] };
+  if (decision.status === 'pending') return { valid: true, errors: [] };
 
   const errors = [];
   for (const field of REQUIRED_FIELDS_BY_STATUS[decision.status]) {
-    if (decision[field] == null) errors.push(`${decision.status} requiere ${field}`);
+    if (decision[field] == null)
+      errors.push(`${decision.status} requiere ${field}`);
   }
-  if (decision.status === "approved_with_exception" && decision.acceptedRisk !== true) {
-    errors.push("approved_with_exception requiere acceptedRisk: true");
+  if (
+    decision.status === 'approved_with_exception' &&
+    decision.acceptedRisk !== true
+  ) {
+    errors.push('approved_with_exception requiere acceptedRisk: true');
   }
   return { valid: errors.length === 0, errors };
 }
 
 const STATUS_MAP = {
-  approved: "approved",
-  approved_with_exception: "approved_with_exception",
-  rejected: "rejected",
-  deferred: "deferred",
-  pending: "decision_pending",
+  approved: 'approved',
+  approved_with_exception: 'approved_with_exception',
+  rejected: 'rejected',
+  deferred: 'deferred',
+  pending: 'decision_pending',
 };
 
-const LEVEL_ORDER = ["low", "medium", "high", "critical"];
+const LEVEL_ORDER = ['low', 'medium', 'high', 'critical'];
 
 /**
  * Valida y adjunta una decisión humana a una evaluación existente. Siempre calcula
@@ -75,16 +88,22 @@ export function recordHumanDecision(evaluation, decision, policy) {
   const gateLevel = policy.risk?.decisionGate?.requiresExceptionAtOrAbove;
   if (
     gateLevel != null &&
-    decision.status === "approved" &&
+    decision.status === 'approved' &&
     LEVEL_ORDER.indexOf(evaluation.riskLevel) >= LEVEL_ORDER.indexOf(gateLevel)
   ) {
     return {
       valid: false,
-      errors: [`riesgo ${evaluation.riskLevel}: "approved" no es válido — usar approved_with_exception (exige acceptedRisk, rationale y reviewAt)`],
+      errors: [
+        `riesgo ${evaluation.riskLevel}: "approved" no es válido — usar approved_with_exception (exige acceptedRisk, rationale y reviewAt)`,
+      ],
     };
   }
 
-  const expiresAt = computeExpiresAt(evaluation.observedAt, evaluation.confidence, policy);
+  const expiresAt = computeExpiresAt(
+    evaluation.observedAt,
+    evaluation.confidence,
+    policy,
+  );
   return {
     valid: true,
     errors: [],
@@ -105,13 +124,15 @@ export function recordHumanDecision(evaluation, decision, policy) {
  */
 function assertSafeCandidateId(candidateId) {
   if (!/^[a-zA-Z0-9_-]+$/.test(candidateId)) {
-    throw new Error(`candidateId contiene caracteres no seguros para una ruta de archivo: ${candidateId}`);
+    throw new Error(
+      `candidateId contiene caracteres no seguros para una ruta de archivo: ${candidateId}`,
+    );
   }
 }
 
 export function evaluationFilePath(rootDir, candidateId) {
   assertSafeCandidateId(candidateId);
-  return path.join(rootDir, "evaluations", `${candidateId}.evaluation.json`);
+  return path.join(rootDir, 'evaluations', `${candidateId}.evaluation.json`);
 }
 
 /**
@@ -122,7 +143,7 @@ export function evaluationFilePath(rootDir, candidateId) {
  */
 export function evidenceInputFilePath(rootDir, candidateId) {
   assertSafeCandidateId(candidateId);
-  return path.join(rootDir, "evaluations", `${candidateId}.evidence.json`);
+  return path.join(rootDir, 'evaluations', `${candidateId}.evidence.json`);
 }
 
 /**
@@ -138,9 +159,16 @@ export function evidenceInputFilePath(rootDir, candidateId) {
  * snapshots idénticos siguen fallando ruidosamente, sin cambios en esa protección).
  */
 export function evaluationId(record) {
-  const safeObservedAt = record.observedAt.replace(/[:.]/g, "-");
-  const safeRef = record.candidate.evaluatedRef.replace(/[^a-zA-Z0-9._-]/g, "-");
-  const digest = crypto.createHash("sha256").update(JSON.stringify(record)).digest("hex").slice(0, 8);
+  const safeObservedAt = record.observedAt.replace(/[:.]/g, '-');
+  const safeRef = record.candidate.evaluatedRef.replace(
+    /[^a-zA-Z0-9._-]/g,
+    '-',
+  );
+  const digest = crypto
+    .createHash('sha256')
+    .update(JSON.stringify(record))
+    .digest('hex')
+    .slice(0, 8);
   return `${safeObservedAt}_${safeRef}_${digest}`;
 }
 
@@ -156,21 +184,24 @@ export async function archiveExistingEvaluation(rootDir, candidateId) {
   const currentPath = evaluationFilePath(rootDir, candidateId);
   let existing;
   try {
-    existing = JSON.parse(await readFile(currentPath, "utf8"));
+    existing = JSON.parse(await readFile(currentPath, 'utf8'));
   } catch (error) {
-    if (error.code === "ENOENT") return { archived: false };
+    if (error.code === 'ENOENT') return { archived: false };
     throw error;
   }
   const id = evaluationId(existing);
-  const historyDir = path.join(rootDir, "evaluations", "history", candidateId);
+  const historyDir = path.join(rootDir, 'evaluations', 'history', candidateId);
   await mkdir(historyDir, { recursive: true });
   const historyPath = path.join(historyDir, `${id}.evaluation.json`);
   try {
-    await writeFile(historyPath, JSON.stringify(existing, null, 2) + "\n", { encoding: "utf8", flag: "wx" });
+    await writeFile(historyPath, JSON.stringify(existing, null, 2) + '\n', {
+      encoding: 'utf8',
+      flag: 'wx',
+    });
   } catch (error) {
-    if (error.code === "EEXIST") {
+    if (error.code === 'EEXIST') {
       throw new Error(
-        `No se puede archivar la evaluación: ya existe una entrada en history/ con el mismo evaluationId (${id}) — el histórico es inmutable, nunca se sobrescribe.`
+        `No se puede archivar la evaluación: ya existe una entrada en history/ con el mismo evaluationId (${id}) — el histórico es inmutable, nunca se sobrescribe.`,
       );
     }
     throw error;
@@ -178,18 +209,24 @@ export async function archiveExistingEvaluation(rootDir, candidateId) {
 
   let existingEvidenceInput;
   try {
-    existingEvidenceInput = JSON.parse(await readFile(evidenceInputFilePath(rootDir, candidateId), "utf8"));
+    existingEvidenceInput = JSON.parse(
+      await readFile(evidenceInputFilePath(rootDir, candidateId), 'utf8'),
+    );
   } catch (error) {
-    if (error.code === "ENOENT") return { archived: true, historyPath };
+    if (error.code === 'ENOENT') return { archived: true, historyPath };
     throw error;
   }
   const evidenceHistoryPath = path.join(historyDir, `${id}.evidence.json`);
   try {
-    await writeFile(evidenceHistoryPath, JSON.stringify(existingEvidenceInput, null, 2) + "\n", { encoding: "utf8", flag: "wx" });
+    await writeFile(
+      evidenceHistoryPath,
+      JSON.stringify(existingEvidenceInput, null, 2) + '\n',
+      { encoding: 'utf8', flag: 'wx' },
+    );
   } catch (error) {
-    if (error.code === "EEXIST") {
+    if (error.code === 'EEXIST') {
       throw new Error(
-        `No se puede archivar el evidence input: ya existe una entrada en history/ con el mismo evaluationId (${id}) — el histórico es inmutable, nunca se sobrescribe.`
+        `No se puede archivar el evidence input: ya existe una entrada en history/ con el mismo evaluationId (${id}) — el histórico es inmutable, nunca se sobrescribe.`,
       );
     }
     throw error;
@@ -204,17 +241,25 @@ export async function archiveExistingEvaluation(rootDir, candidateId) {
  * auditable. `decide` llama sin `options.evidenceInput`: la decisión no regenera
  * evidencia, el input vigente queda intacto.
  */
-export async function writeEvaluationRecord(rootDir, evaluationRecord, options = {}) {
+export async function writeEvaluationRecord(
+  rootDir,
+  evaluationRecord,
+  options = {},
+) {
   await archiveExistingEvaluation(rootDir, evaluationRecord.candidate.id);
-  const evaluationsDir = path.join(rootDir, "evaluations");
+  const evaluationsDir = path.join(rootDir, 'evaluations');
   await mkdir(evaluationsDir, { recursive: true });
   const filePath = evaluationFilePath(rootDir, evaluationRecord.candidate.id);
-  await writeFile(filePath, JSON.stringify(evaluationRecord, null, 2) + "\n", "utf8");
+  await writeFile(
+    filePath,
+    JSON.stringify(evaluationRecord, null, 2) + '\n',
+    'utf8',
+  );
   if (options.evidenceInput != null) {
     await writeFile(
       evidenceInputFilePath(rootDir, evaluationRecord.candidate.id),
-      JSON.stringify(options.evidenceInput, null, 2) + "\n",
-      "utf8"
+      JSON.stringify(options.evidenceInput, null, 2) + '\n',
+      'utf8',
     );
   }
   return { filePath };

@@ -5,17 +5,22 @@
  * sin mirar la confianza. Solo confianza "low" degrada advance — los demás
  * resultados nunca cambian automáticamente por confianza.
  */
-export function computeBaselineRecommendation(overallScore, confidenceBand, policy) {
-  if (overallScore == null) return "insufficient_evidence";
+export function computeBaselineRecommendation(
+  overallScore,
+  confidenceBand,
+  policy,
+) {
+  if (overallScore == null) return 'insufficient_evidence';
 
   const { advance, advanceWithReservations } = policy.recommendationThresholds;
   let recommendation;
-  if (overallScore >= advance) recommendation = "advance";
-  else if (overallScore >= advanceWithReservations) recommendation = "advance_with_reservations";
-  else recommendation = "do_not_advance";
+  if (overallScore >= advance) recommendation = 'advance';
+  else if (overallScore >= advanceWithReservations)
+    recommendation = 'advance_with_reservations';
+  else recommendation = 'do_not_advance';
 
-  if (recommendation === "advance" && confidenceBand === "low") {
-    return "advance_with_reservations";
+  if (recommendation === 'advance' && confidenceBand === 'low') {
+    return 'advance_with_reservations';
   }
   return recommendation;
 }

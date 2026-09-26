@@ -1,4 +1,8 @@
-import { logNormalize, weightedAvailable, coveragePercent } from "./normalize.mjs";
+import {
+  logNormalize,
+  weightedAvailable,
+  coveragePercent,
+} from './normalize.mjs';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -9,11 +13,23 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 export function computeCommunityScore(counts, policy) {
   const { anchors, subfactorWeights } = policy.community;
   const entries = [
-    { score: logNormalize(counts.stars, anchors.starsReference), weight: subfactorWeights.stars },
-    { score: logNormalize(counts.contributors, anchors.contributorsReference), weight: subfactorWeights.contributors },
-    { score: logNormalize(counts.forks, anchors.forksReference), weight: subfactorWeights.forks },
+    {
+      score: logNormalize(counts.stars, anchors.starsReference),
+      weight: subfactorWeights.stars,
+    },
+    {
+      score: logNormalize(counts.contributors, anchors.contributorsReference),
+      weight: subfactorWeights.contributors,
+    },
+    {
+      score: logNormalize(counts.forks, anchors.forksReference),
+      weight: subfactorWeights.forks,
+    },
   ];
-  return { score: weightedAvailable(entries), coverage: coveragePercent(entries) };
+  return {
+    score: weightedAvailable(entries),
+    coverage: coveragePercent(entries),
+  };
 }
 
 /**
@@ -27,13 +43,21 @@ export function computeCommunityScore(counts, policy) {
  */
 export function computeFactorScore(subfactorRecords, policy, factorId) {
   const factorWeights = policy[factorId].subfactorWeights;
-  const recordsById = new Map(subfactorRecords.map((record) => [record.id, record]));
+  const recordsById = new Map(
+    subfactorRecords.map((record) => [record.id, record]),
+  );
   const entries = Object.keys(factorWeights).map((id) => {
     const record = recordsById.get(id);
-    const available = record != null && record.availability === "available";
-    return { score: available ? record.score : null, weight: factorWeights[id] };
+    const available = record != null && record.availability === 'available';
+    return {
+      score: available ? record.score : null,
+      weight: factorWeights[id],
+    };
   });
-  return { score: weightedAvailable(entries), coverage: coveragePercent(entries) };
+  return {
+    score: weightedAvailable(entries),
+    coverage: coveragePercent(entries),
+  };
 }
 
 /**
@@ -53,8 +77,13 @@ export function computeOverallScore(factorResults, policy) {
       coverage: result ? result.coverage : 0,
     };
   });
-  const overallScore = weightedAvailable(entries.map((entry) => ({ score: entry.score, weight: entry.weight })));
-  const evidenceCoverage = entries.reduce((total, entry) => total + entry.weight * entry.coverage, 0);
+  const overallScore = weightedAvailable(
+    entries.map((entry) => ({ score: entry.score, weight: entry.weight })),
+  );
+  const evidenceCoverage = entries.reduce(
+    (total, entry) => total + entry.weight * entry.coverage,
+    0,
+  );
   return { overallScore, evidenceCoverage };
 }
 
@@ -79,7 +108,11 @@ export function computeOverallScore(factorResults, policy) {
  * conflicto de identidad no llega nunca a este cálculo: la evaluación queda `pending`
  * antes (ver runEvaluation).
  */
-export function deriveConfidenceInputs({ observedAt, communitySnapshot, reusedSnapshot, contributorsState }, policy, now) {
+export function deriveConfidenceInputs(
+  { observedAt, communitySnapshot, reusedSnapshot, contributorsState },
+  policy,
+  now,
+) {
   const { freshnessBands, consistencyStates } = policy.confidenceDerivation;
 
   const bandScore = (ageDays) => {
@@ -88,21 +121,40 @@ export function deriveConfidenceInputs({ observedAt, communitySnapshot, reusedSn
     }
     return 0; // más vieja que la última banda declarada — sin evidencia reciente
   };
-  const ageDaysOf = (isoString) => (now.getTime() - new Date(isoString).getTime()) / MS_PER_DAY;
+  const ageDaysOf = (isoString) =>
+    (now.getTime() - new Date(isoString).getTime()) / MS_PER_DAY;
 
   const freshnessEntries = Object.keys(policy.globalWeights).map((factorId) => {
-    if (factorId !== "community") return { score: bandScore(ageDaysOf(observedAt)), weight: policy.globalWeights[factorId] };
-    if (!communitySnapshot) return { score: null, weight: policy.globalWeights[factorId] };
-    return { score: bandScore(ageDaysOf(communitySnapshot.observedAt)), weight: policy.globalWeights[factorId] };
+    if (factorId !== 'community')
+      return {
+        score: bandScore(ageDaysOf(observedAt)),
+        weight: policy.globalWeights[factorId],
+      };
+    if (!communitySnapshot)
+      return { score: null, weight: policy.globalWeights[factorId] };
+    return {
+      score: bandScore(ageDaysOf(communitySnapshot.observedAt)),
+      weight: policy.globalWeights[factorId],
+    };
   });
   const evidenceFreshness = weightedAvailable(freshnessEntries);
 
   let evidenceConsistency = consistencyStates.clean;
-  if (communitySnapshot && contributorsState != null && contributorsState !== "available") {
-    evidenceConsistency = Math.min(evidenceConsistency, consistencyStates.minor);
+  if (
+    communitySnapshot &&
+    contributorsState != null &&
+    contributorsState !== 'available'
+  ) {
+    evidenceConsistency = Math.min(
+      evidenceConsistency,
+      consistencyStates.minor,
+    );
   }
   if (reusedSnapshot) {
-    evidenceConsistency = Math.min(evidenceConsistency, consistencyStates.minor);
+    evidenceConsistency = Math.min(
+      evidenceConsistency,
+      consistencyStates.minor,
+    );
   }
 
   return { evidenceFreshness, evidenceConsistency };
@@ -128,7 +180,7 @@ export function computeConfidenceScore(inputs, policy) {
 /** Bandas de confianza: high >= 80, medium >= 50, si no low. Umbrales inclusivos. */
 export function classifyConfidenceBand(confidenceScore, policy) {
   const { high, medium } = policy.confidenceBands;
-  if (confidenceScore >= high) return "high";
-  if (confidenceScore >= medium) return "medium";
-  return "low";
+  if (confidenceScore >= high) return 'high';
+  if (confidenceScore >= medium) return 'medium';
+  return 'low';
 }

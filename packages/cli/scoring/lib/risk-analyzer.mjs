@@ -1,5 +1,4 @@
-
-const LEVEL_ORDER = ["low", "medium", "high", "critical"];
+const LEVEL_ORDER = ['low', 'medium', 'high', 'critical'];
 
 /**
  * Clasifica el riesgo por el MAYOR impacto aplicable entre las señales marcadas true —
@@ -15,16 +14,21 @@ const LEVEL_ORDER = ["low", "medium", "high", "critical"];
 export function classifyRisk(flags, policy) {
   const flagLevels = policy.risk.flagLevels;
 
-  const unknownFlags = Object.keys(flags).filter((name) => !(name in flagLevels));
+  const unknownFlags = Object.keys(flags).filter(
+    (name) => !(name in flagLevels),
+  );
   if (unknownFlags.length > 0) {
-    throw new Error(`classifyRisk: señal(es) de riesgo desconocida(s): ${unknownFlags.join(", ")}`);
+    throw new Error(
+      `classifyRisk: señal(es) de riesgo desconocida(s): ${unknownFlags.join(', ')}`,
+    );
   }
 
-  let maxLevel = "low";
+  let maxLevel = 'low';
   for (const flagName of Object.keys(flagLevels)) {
     if (!flags[flagName]) continue;
     const level = flagLevels[flagName];
-    if (LEVEL_ORDER.indexOf(level) > LEVEL_ORDER.indexOf(maxLevel)) maxLevel = level;
+    if (LEVEL_ORDER.indexOf(level) > LEVEL_ORDER.indexOf(maxLevel))
+      maxLevel = level;
   }
   return maxLevel;
 }

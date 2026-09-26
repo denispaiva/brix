@@ -5,15 +5,21 @@
  * en absoluto), no un error de programación.
  */
 export function parseGithubUrl(url) {
-  const match = /^https?:\/\/github\.com\/([^/\s?#]+)\/([^/\s?#]+?)(?:\.git)?\/?(?:[?#].*)?$/.exec(url.trim());
+  const match =
+    /^https?:\/\/github\.com\/([^/\s?#]+)\/([^/\s?#]+?)(?:\.git)?\/?(?:[?#].*)?$/.exec(
+      url.trim(),
+    );
   if (!match) return null;
   return { owner: match[1], repo: match[2] };
 }
 
-const GITHUB_API_BASE = "https://api.github.com";
+const GITHUB_API_BASE = 'https://api.github.com';
 
 function buildHeaders(token) {
-  const headers = { "User-Agent": "blends-tooling-scoring", Accept: "application/vnd.github+json" };
+  const headers = {
+    'User-Agent': 'blends-tooling-scoring',
+    Accept: 'application/vnd.github+json',
+  };
   if (token) headers.Authorization = `Bearer ${token}`;
   return headers;
 }
@@ -30,25 +36,37 @@ export async function fetchGithubRepository(owner, repo, options = {}) {
 
   let response;
   try {
-    response = await fetchImpl(`${GITHUB_API_BASE}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`, { headers });
+    response = await fetchImpl(
+      `${GITHUB_API_BASE}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`,
+      { headers },
+    );
   } catch (error) {
-    return { state: "unavailable", error: error.message };
+    return { state: 'unavailable', error: error.message };
   }
 
-  if (response.status === 404) return { state: "not_found" };
-  if (response.status === 403 && response.headers.get("x-ratelimit-remaining") === "0") {
-    return { state: "rate_limited", resetAt: response.headers.get("x-ratelimit-reset") };
+  if (response.status === 404) return { state: 'not_found' };
+  if (
+    response.status === 403 &&
+    response.headers.get('x-ratelimit-remaining') === '0'
+  ) {
+    return {
+      state: 'rate_limited',
+      resetAt: response.headers.get('x-ratelimit-reset'),
+    };
   }
-  if (!response.ok) return { state: "unavailable", httpStatus: response.status };
+  if (!response.ok)
+    return { state: 'unavailable', httpStatus: response.status };
 
   let body;
   try {
     body = await response.json();
   } catch (error) {
-    return { state: "unavailable", error: error.message };
+    return { state: 'unavailable', error: error.message };
   }
   const expectedFullName = `${owner}/${repo}`;
-  const conflicting = body.full_name != null && body.full_name.toLowerCase() !== expectedFullName.toLowerCase();
+  const conflicting =
+    body.full_name != null &&
+    body.full_name.toLowerCase() !== expectedFullName.toLowerCase();
 
   const data = {
     fullName: body.full_name,
@@ -63,9 +81,14 @@ export async function fetchGithubRepository(owner, repo, options = {}) {
   };
 
   if (conflicting) {
-    return { state: "conflicting", expectedFullName, actualFullName: body.full_name, data };
+    return {
+      state: 'conflicting',
+      expectedFullName,
+      actualFullName: body.full_name,
+      data,
+    };
   }
-  return { state: "available", data };
+  return { state: 'available', data };
 }
 
 /**
@@ -81,33 +104,47 @@ export async function fetchGithubContributorsCount(owner, repo, options = {}) {
 
   let response;
   try {
-    response = await fetchImpl(`${GITHUB_API_BASE}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contributors?per_page=1&anon=true`, { headers });
+    response = await fetchImpl(
+      `${GITHUB_API_BASE}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contributors?per_page=1&anon=true`,
+      { headers },
+    );
   } catch (error) {
-    return { state: "unavailable", error: error.message };
+    return { state: 'unavailable', error: error.message };
   }
 
-  if (response.status === 404) return { state: "not_found" };
-  if (response.status === 403 && response.headers.get("x-ratelimit-remaining") === "0") {
-    return { state: "rate_limited", resetAt: response.headers.get("x-ratelimit-reset") };
+  if (response.status === 404) return { state: 'not_found' };
+  if (
+    response.status === 403 &&
+    response.headers.get('x-ratelimit-remaining') === '0'
+  ) {
+    return {
+      state: 'rate_limited',
+      resetAt: response.headers.get('x-ratelimit-reset'),
+    };
   }
-  if (!response.ok) return { state: "unavailable", httpStatus: response.status };
+  if (!response.ok)
+    return { state: 'unavailable', httpStatus: response.status };
 
-  const linkHeader = response.headers.get("link");
+  const linkHeader = response.headers.get('link');
   if (!linkHeader) {
     let body;
     try {
       body = await response.json();
     } catch (error) {
-      return { state: "unavailable", error: error.message };
+      return { state: 'unavailable', error: error.message };
     }
-    return { state: "available", data: { count: body.length } };
+    return { state: 'available', data: { count: body.length } };
   }
   const lastPageMatch = /[?&]page=(\d+)>;\s*rel="last"/.exec(linkHeader);
-  if (!lastPageMatch) return { state: "unavailable", note: "Link header presente sin rel=last reconocible" };
-  return { state: "available", data: { count: Number(lastPageMatch[1]) } };
+  if (!lastPageMatch)
+    return {
+      state: 'unavailable',
+      note: 'Link header presente sin rel=last reconocible',
+    };
+  return { state: 'available', data: { count: Number(lastPageMatch[1]) } };
 }
 
-const PROPAGATED_STATES = new Set(["not_found", "unavailable", "rate_limited"]);
+const PROPAGATED_STATES = new Set(['not_found', 'unavailable', 'rate_limited']);
 
 /**
  * Orquesta parseGithubUrl + fetchGithubRepository + fetchGithubContributorsCount
@@ -116,7 +153,8 @@ const PROPAGATED_STATES = new Set(["not_found", "unavailable", "rate_limited"]);
  */
 export async function collectGithubCommunityEvidence(url, options = {}) {
   const parsed = parseGithubUrl(url);
-  if (!parsed) return { state: "not_applicable", reason: "la URL no es de github.com" };
+  if (!parsed)
+    return { state: 'not_applicable', reason: 'la URL no es de github.com' };
   const { owner, repo } = parsed;
 
   const repository = await fetchGithubRepository(owner, repo, options);
@@ -127,13 +165,17 @@ export async function collectGithubCommunityEvidence(url, options = {}) {
 
   return {
     state: repository.state, // "available" o "conflicting"
-    ...(repository.state === "conflicting"
-      ? { expectedFullName: repository.expectedFullName, actualFullName: repository.actualFullName }
+    ...(repository.state === 'conflicting'
+      ? {
+          expectedFullName: repository.expectedFullName,
+          actualFullName: repository.actualFullName,
+        }
       : {}),
     counts: {
       stars: repository.data.stars,
       forks: repository.data.forks,
-      contributors: contributors.state === "available" ? contributors.data.count : null,
+      contributors:
+        contributors.state === 'available' ? contributors.data.count : null,
     },
     contributorsState: contributors.state,
     raw: repository.data,
