@@ -6,8 +6,10 @@ import { promisify } from 'node:util';
 import { mkdtemp, rm, mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { readFrameworkVersion } from '../../../tools/validate-versions.mjs';
 
 const execFileAsync = promisify(execFile);
+const REPO_ROOT = path.join(import.meta.dirname, '..', '..', '..', '..');
 const WRAPPER_PATH = path.join(
   import.meta.dirname,
   '..',
@@ -25,7 +27,11 @@ const WRAPPER_PATH = path.join(
 test('validate-billing-ledger.mjs con un archivo puntual: ledger válido sale 0', async () => {
   const dir = await mkdtempDir();
   const ledgerPath = path.join(dir, 'billing-ledger.json');
-  await writeFile(ledgerPath, JSON.stringify(minimalValidLedger()), 'utf8');
+  await writeFile(
+    ledgerPath,
+    JSON.stringify(minimalValidLedger(await readFrameworkVersion(REPO_ROOT))),
+    'utf8',
+  );
   const { stdout } = await execFileAsync('node', [WRAPPER_PATH, ledgerPath]);
   assert.match(stdout, /Billing ledger válido/);
 });
@@ -33,7 +39,7 @@ test('validate-billing-ledger.mjs con un archivo puntual: ledger válido sale 0'
 test('validate-billing-ledger.mjs con un archivo puntual: ledger inválido sale con error listado', async () => {
   const dir = await mkdtempDir();
   const ledgerPath = path.join(dir, 'billing-ledger.json');
-  const ledger = minimalValidLedger();
+  const ledger = minimalValidLedger(await readFrameworkVersion(REPO_ROOT));
   ledger.currency = 'ARS';
   await writeFile(ledgerPath, JSON.stringify(ledger), 'utf8');
   await assert.rejects(
@@ -42,10 +48,13 @@ test('validate-billing-ledger.mjs con un archivo puntual: ledger inválido sale 
   );
 });
 
-function minimalValidLedger() {
+// El validador exige que el ledger declare la versión VIGENTE del framework: se
+// lee de la fuente de verdad en vez de fijarla. Con el número escrito a mano la
+// prueba rompe cuando el tren renumera al abordar y con cada bump.
+function minimalValidLedger(frameworkVersion) {
   return {
     schemaVersion: '1.6.0',
-    frameworkVersion: '1.85.0',
+    frameworkVersion,
     period: '2026-09',
     currency: 'USD',
     owner: 'Test',
