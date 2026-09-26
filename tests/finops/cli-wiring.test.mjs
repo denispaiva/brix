@@ -49,7 +49,8 @@ test('validate-billing-ledger.mjs con un archivo puntual: ledger inválido sale 
 });
 
 // El validador exige que el ledger declare la versión VIGENTE del framework: se
-// lee de la fuente de verdad en vez de fijarla, así un bump no rompe esta prueba.
+// lee de la fuente de verdad en vez de fijarla. Con el número escrito a mano la
+// prueba rompe cuando el tren renumera al abordar y con cada bump.
 function minimalValidLedger(frameworkVersion) {
   return {
     schemaVersion: '1.6.0',
