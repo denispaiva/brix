@@ -3,7 +3,7 @@
 - Fecha de la revisión: 2026-10-11, fijada por D7 en la [propuesta de la Fase 0](./2026-09-13-fase-0-propuesta.md)
 - Evidencia relevada el 2026-10-01 sobre `origin/main` en `4085d70f`
 - Preparado por: sesión de ejecución, a pedido del PO (T-12)
-- Estado: **borrador, con decisiones del PO pendientes** (sección "Qué decide el PO")
+- Estado: **decidida por el PO el 2026-10-01** (sección "Decisiones del PO"); T-12 se cerró ese día, antes de la fecha de D7
 - Decide: Denis Paiva (product-owner)
 
 ## Resumen
@@ -136,7 +136,7 @@ una colisión que la Fase 0 no resolvió: elegir el modelo de forma automática
 choca con la regla que reserva los cambios de binding a una decisión humana.
 Bajo suscripción, además, no hay precio por token para un Pareto.
 
-## Qué decide el PO
+## Opciones presentadas al PO
 
 1. **Qué sigue después de la Fase 0.**
    - **A (recomendada): Fase 1, poner la medición en marcha.** Es una lista
@@ -171,3 +171,20 @@ Bajo suscripción, además, no hay precio por token para un Pareto.
    - aceptar `initial-validation` con `measurementWaiver`, con motivo y fecha;
    - borrar `fix/brix-node-24`;
    - cerrar T-12 en esta revisión.
+
+## Decisiones del PO
+
+Tomadas el 2026-10-01, todas en la opción recomendada:
+
+1. **Qué sigue:** la Fase 1, poner la medición en marcha. Va en el epic EP-04
+   y el sprint SP-2026-W42 (12/10 al 25/10), con las tareas T-13 a T-18 del
+   roadmap. Cierra cuando al menos un entregable tenga `actuals` producidos
+   por M2.
+2. **Punto 3 de la idea:** se redefine como una recomendación de modelo que
+   decide un humano, no como automatización (T-18).
+3. **Codex:** no se instrumenta por ahora. Se vuelve a evaluar si cambia su
+   papel en los bindings.
+4. **Orden administrativo:**
+   - `initial-validation` queda `accepted` con `measurementWaiver`;
+   - T-12 se cierra hoy;
+   - `fix/brix-node-24` se borra, en local y en `origin`.
