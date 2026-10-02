@@ -24,7 +24,7 @@
       "const": "1.6.0"
     },
     "frameworkVersion": {
-      "const": "1.89.0"
+      "const": "1.90.0"
     },
     "period": {
       "type": "string",
