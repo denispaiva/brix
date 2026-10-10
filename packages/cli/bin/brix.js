@@ -46,6 +46,14 @@ if (command === 'tool' && subCommand === 'score') {
     watchPaths: flags.watch ? flags.watch.split(',') : config.ci?.watchPaths,
     entrypoint: flags.entrypoint || config.ci?.entrypoint,
   });
+} else if (command === 'seed') {
+  // Motor de sembrado (registro 0007). Como `tool score`, toma la cola de argv
+  // en crudo: sus flags son propios.
+  const { runSeedCli } = await import('../seeding/engine.mjs');
+  const code = await runSeedCli(process.argv.slice(2).slice(1), {
+    cwd: process.cwd(),
+  });
+  if (code) process.exit(code);
 } else {
   console.log(`
 🔨 Brix CLI — Vibe Coding Governance OS (v0.1.0)
@@ -68,6 +76,11 @@ Comandos disponibles:
   brix ci                  Genera workflows de GitHub Actions (.github/workflows/ci.yml)
       --watch <globs>        Rutas que disparan el workflow, separadas por coma
       --entrypoint <path>    Ruta al binario de brix dentro del repo destino
+  brix seed run <escenario> --target <target> --driver <ruta>   Siembra un escenario (emulador autónomo; dev conducido)
+      --seed <n> --cmd-dir <dir> --keep-going --realtime --max-wait <s> --dry-run
+  brix seed validate <escenario> [--target <target> --driver <ruta>]   Valida el escenario contra esquema y driver
+  brix seed clean --run <id> --driver <ruta> --target <target>   Borra solo las raíces del manifiesto de esa corrida
+  brix seed list           Lista las corridas de sembrado (BRIX_SEED_DIR o ~/.brix/seed-runs)
 
 Configuración por proyecto: brix.config.json (o .brixrc.json) en la raíz del
 repo donde se invoca brix. Los flags tienen precedencia sobre el archivo.

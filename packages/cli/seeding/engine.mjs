@@ -323,6 +323,133 @@ export async function listRuns(manifestDir = defaultManifestDir()) {
   }));
 }
 
+export async function runSeedCli(
+  argv,
+  {
+    cwd = process.cwd(),
+    env = process.env,
+    stdout = console.log,
+    stderr = console.error,
+  } = {},
+) {
+  const { flags, positional } = parseFlags(argv);
+  const [sub, file] = positional;
+  const dir = defaultManifestDir(env);
+  try {
+    if (sub === 'list') {
+      const runs = await listRuns(dir);
+      if (!runs.length) stdout(`sin corridas en ${dir}`);
+      for (const r of runs)
+        stdout(
+          `${r.run_id}  ${r.scenario}  ${r.target}  ${r.outcome ?? 'en curso'}  ${r.cleaned ? 'limpia' : 'sin limpiar'}  ${r.started_at}`,
+        );
+      return 0;
+    }
+    if (sub === 'clean') {
+      if (!flags.run || !flags.driver || !flags.target)
+        throw new Error(
+          'uso: brix seed clean --run <id> --driver <ruta> --target <target>',
+        );
+      const mod = await loadDriver({
+        name: 'cli',
+        driverPath: flags.driver,
+        cwd,
+      });
+      const driver = mod.createDriver({ target: flags.target, log: () => {} });
+      const g = checkTarget({
+        driver,
+        target: flags.target,
+        env,
+        cmdDir: flags['cmd-dir'],
+      });
+      if (!g.ok)
+        throw new Error(
+          `no se puede limpiar en ${flags.target}:\n - ${g.errors.join('\n - ')}`,
+        );
+      const m = await cleanRun({ runId: flags.run, driver, manifestDir: dir });
+      stdout(
+        `corrida ${m.run_id}: borradas ${m.cleanup.deleted.length} raíces, ${m.cleanup.failed.length} fallidas`,
+      );
+      for (const f of m.cleanup.failed)
+        stdout(`  no se pudo borrar ${f.ref}: ${f.error}`);
+      return m.cleanup.failed.length ? 1 : 0;
+    }
+    if (sub !== 'run' && sub !== 'validate')
+      throw new Error(
+        'uso: brix seed run|validate <escenario> | clean --run <id> | list',
+      );
+    if (!file) throw new Error(`uso: brix seed ${sub} <escenario.json>`);
+    const { scenario, hash } = await loadScenario(
+      path.isAbsolute(file) ? file : path.join(cwd, file),
+    );
+    const target = flags.target;
+    if (!flags.driver) {
+      if (sub === 'validate') {
+        const v = validateScenario(scenario);
+        if (!v.ok)
+          throw new Error(`escenario inválido:\n - ${v.errors.join('\n - ')}`);
+        stdout('escenario válido (sin driver: solo esquema)');
+        return 0;
+      }
+      throw new Error(
+        'brix seed run necesita --driver <ruta> y --target <target>',
+      );
+    }
+    const mod = await loadDriver({
+      name: scenario.driver,
+      driverPath: flags.driver,
+      cwd,
+    });
+    const driver = mod.createDriver({
+      target: target ?? 'emulator',
+      log: (l) => stderr(`  ${l}`),
+    });
+    if (sub === 'validate') {
+      const v = validateScenario(scenario, { driver, target });
+      if (!v.ok)
+        throw new Error(
+          `escenario inválido${target ? ` para ${target}` : ''}:\n - ${v.errors.join('\n - ')}`,
+        );
+      stdout(`escenario válido${target ? ` para ${target}` : ''}`);
+      return 0;
+    }
+    if (!target) throw new Error('brix seed run necesita --target <target>');
+    const seed = flags.seed !== undefined ? Number(flags.seed) : undefined;
+    if (flags['dry-run']) {
+      const plan = planRun({ scenario, driver, target, seed });
+      stdout(
+        `modo ${plan.mode} · ${plan.bots.length} actores · ${plan.steps.length} pasos · semilla ${plan.seed}`,
+      );
+      for (const s of plan.steps)
+        stdout(
+          `  ${s.n}. ${s.actor} ${s.op}${s.manualOf ? ` (auto de: ${s.manualOf.do})` : s.do ? ` — ${s.do}` : ''}`,
+        );
+      return 0;
+    }
+    const m = await runScenario({
+      scenario,
+      scenarioHash: hash,
+      driver,
+      target,
+      seed,
+      manifestDir: dir,
+      env,
+      cmdDir: flags['cmd-dir'],
+      keepGoing: Boolean(flags['keep-going']),
+      realtime: Boolean(flags.realtime),
+      maxWait:
+        flags['max-wait'] !== undefined ? Number(flags['max-wait']) : undefined,
+    });
+    stdout(
+      `run_id ${m.run_id} · ${m.outcome} · ${m.roots.length} raíces · manifiesto en ${dir}`,
+    );
+    return m.outcome === 'completed' ? 0 : 1;
+  } catch (e) {
+    stderr(`❌ ${e.message}`);
+    return 1;
+  }
+}
+
 function defaultIo() {
   return {
     print: (t) => console.log(t),

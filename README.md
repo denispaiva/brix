@@ -46,6 +46,10 @@ npm install --global ./packages/cli
 | `brix idea <archivo.md>`                                                    | Convierte notas informales en un `SPEC.md` ejecutable.                                       |
 | `brix graduate [path]`                                                      | Extrae una subcarpeta con `git subtree split` a una rama lista para empujar a un repo nuevo. |
 | `brix ci`                                                                   | Genera `.github/workflows/ci.yml`.                                                           |
+| `brix seed run <escenario> --target <target> --driver <ruta>`               | Siembra un escenario (emulador autónomo; dev conducido) y deja un manifiesto de la corrida.  |
+| `brix seed validate <escenario> [--target <target> --driver <ruta>]`        | Valida el escenario contra el esquema y, con driver, contra el contrato del target.          |
+| `brix seed clean --run <id> --driver <ruta> --target <target>`              | Borra solo las raíces del manifiesto de esa corrida.                                         |
+| `brix seed list`                                                            | Lista las corridas de sembrado (`BRIX_SEED_DIR` o `~/.brix/seed-runs`).                      |
 
 ### Flags
 
@@ -63,8 +67,17 @@ npm install --global ./packages/cli
 | `graduate`            | `--remote <git-url>`                          | Repo destino que aparece en la instrucción de push.                  |
 | `ci`                  | `--watch <globs>`                             | Rutas que disparan el workflow, separadas por coma.                  |
 | `ci`                  | `--entrypoint <path>`                         | Ruta al binario de brix dentro del repo destino.                     |
+| `seed run`            | `--target <target>` / `--driver <ruta>`       | Target declarado por el driver y módulo del driver (obligatorios).   |
+| `seed run`            | `--seed <n>`                                  | Semilla de los bots; por defecto, la del escenario.                  |
+| `seed run`            | `--cmd-dir <dir>`                             | Permite el modo conducido sin terminal interactiva.                  |
+| `seed run`            | `--keep-going`                                | Un paso fallido no aborta: la corrida termina `partial`.             |
+| `seed run`            | `--realtime`                                  | Respeta las esperas de ronda también en modo autónomo.               |
+| `seed run`            | `--max-wait <s>`                              | Tope en segundos de cada espera de ronda.                            |
+| `seed run`            | `--dry-run`                                   | Imprime el plan (modo, actores, pasos) sin acuñar nada.              |
 
 Los flags aceptan tanto `--flag valor` como `--flag=valor`.
+
+`brix seed` no sabe de ningún producto: necesita `--driver <ruta>` al módulo que implementa el contrato (`vc/teyst/tools/gate-kit/driver.mjs` para Teyst). Los manifiestos quedan en `$BRIX_SEED_DIR` o `~/.brix/seed-runs/`, nunca en el repo.
 
 ## Configuración
 
