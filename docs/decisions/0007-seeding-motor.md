@@ -33,15 +33,21 @@
    `delete` rechaza cualquier ref que el manifiesto no contenga. La cuenta de
    servicio `@appspot` **sigue sin roles**.
 
-Además, la capacidad se entrega en **una sola rama**,
-`feat/brix-seeding-capability`, con un `SCOPE-EXCEPTION.md` que declara los
-archivos fuera de `vc/brix/**` que toca. Es una decisión del PO del 2026-10-06
-(sección «Entrega» de la spec): el chequeo local de alcance
-(`vc/tools/check-branch-scope.mjs`) compara contra `origin/main`, así que una
+Además, la entrega son **dos ramas, no apiladas**, ambas con orden de sync 4
+(decisión del PO del 2026-10-06, sección «Entrega: dos ramas, orden de sync 4»
+de la spec):
+
+- `docs/seeding-capability-design`: la spec, el plan y las cuatro entradas
+  `idea` del registro de capacidades. Ya está en `main` (tren #268, 2026-10-07).
+- `feat/brix-seeding-capability`: el motor, el driver de Teyst y las entradas
+  del registro pasadas a `shipped` viajan juntos en esta rama, que nació de
+  `main` una vez mergeada la primera. Lleva un `SCOPE-EXCEPTION.md` que declara
+  los archivos fuera de `vc/brix/**` que toca.
+
+No se apilan porque el chequeo local de alcance
+(`vc/tools/check-branch-scope.mjs`) calcula el diff contra `origin/main`: una
 rama apilada bajo otra regla «toca» los archivos heredados y la batería local de
-`npm run entregar` la rechaza. La rama de código nace de `main` cuando la rama
-de diseño (`docs/seeding-capability-design`: spec, plan y entradas `idea` del
-registro) ya está mergeada.
+`npm run entregar` la rechaza.
 
 ## Inversión de dependencia
 
@@ -49,8 +55,7 @@ registro) ya está mergeada.
 Brix; el framework pasó a depender de Brix, y eso exigió documentar la inversión.
 Este motor nace en Brix y su único consumidor es un producto: el driver de Teyst
 **importa el contrato de Brix**, no al revés. Producto → Brix es la dirección
-normal de dependencia, la misma que ya siguen los demás proyectos graduados
-respecto de Brix. Brix no importa nada de `vc/teyst/`, y la conformidad rechaza
+normal de dependencia. Brix no importa nada de `vc/teyst/`, y la conformidad rechaza
 drivers cuyo mapa de targets contenga `prod`, de modo que ningún producto puede
 pedirle al motor que toque producción.
 
