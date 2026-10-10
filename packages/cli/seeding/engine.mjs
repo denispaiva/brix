@@ -106,12 +106,20 @@ export async function runScenario(opts) {
       bot.kind === 'host'
         ? `Host-${shortRunId(runId)}`
         : `Bot-${shortRunId(runId)}-${bot.index}`;
-    const minted = await driver.mint({
-      kind: bot.kind,
-      id: bot.id,
-      alias,
-      runId,
-    });
+    let minted;
+    try {
+      minted = await driver.mint({
+        kind: bot.kind,
+        id: bot.id,
+        alias,
+        runId,
+      });
+    } catch (e) {
+      // Lo ya acuñado quedó guardado tras cada mint: que `clean` pueda encontrarlo.
+      finish(m, 'aborted');
+      await save();
+      throw new Error(`acuñando ${bot.id}: ${e.message}`, { cause: e });
+    }
     const actor = { ...bot, uid: minted.uid, alias: minted.alias ?? alias };
     actors.set(bot.id, actor);
     addActor(m, {
@@ -124,6 +132,7 @@ export async function runScenario(opts) {
       standInFor: actor.standInFor,
     });
     addRoots(m, minted.roots, 0);
+    await save();
   }
   await save();
 
@@ -169,6 +178,7 @@ export async function runScenario(opts) {
   };
 
   let outcome = 'completed';
+  let failures = 0;
   for (const step of plan.steps) {
     const started = Date.now();
     const entry = {
@@ -268,11 +278,14 @@ export async function runScenario(opts) {
         );
         break;
       }
+      failures += 1;
+      await save();
       continue;
     }
     logStep(m, { ...entry, ms: Date.now() - started });
     await save();
   }
+  if (outcome === 'completed' && failures > 0) outcome = 'partial';
   finish(m, outcome);
   await save();
   return m;

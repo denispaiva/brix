@@ -102,25 +102,101 @@ test('la misma semilla reproduce la misma bitácora de decisiones', async () => 
   assert.deepEqual(await run(), await run());
 });
 
-test('un expect fallido aborta y deja el manifiesto con lo creado', async () => {
+const silentIo = { print: () => {}, prompt: async () => '' };
+const withFailingAssert = () => {
   const s = fullScenario();
   s.steps.splice(2, 0, {
     actor: 'runner',
     op: 'assert',
     expect: { 'event.status': 'closed' },
   });
+  return s;
+};
+
+test('un expect fallido aborta y deja el manifiesto con lo creado', async () => {
+  const dir = await tmp();
   const m = await runScenario({
-    scenario: s,
+    scenario: withFailingAssert(),
     scenarioHash: 'h',
     driver: createDriver({ target: 'emulator' }),
     target: 'emulator',
     seed: 1,
-    manifestDir: await tmp(),
+    manifestDir: dir,
     env: emuEnv,
+    io: silentIo,
     runId: 'seed-abort',
   });
   assert.equal(m.outcome, 'aborted');
-  assert.ok(m.roots.length >= 2);
+  assert.ok(
+    m.roots.some((r) => r.type === 'event'),
+    'el evento creado antes del assert quedó en el manifiesto',
+  );
+  const last = m.steps.at(-1);
+  assert.equal(last.ok, false);
+  assert.equal(last.op, 'assert');
+  const saved = JSON.parse(
+    await readFile(path.join(dir, 'seed-abort.json'), 'utf8'),
+  );
+  assert.equal(saved.outcome, 'aborted');
+});
+
+test('con keepGoing un paso fallido no corta la corrida y cierra como partial', async () => {
+  const dir = await tmp();
+  const m = await runScenario({
+    scenario: withFailingAssert(),
+    scenarioHash: 'h',
+    driver: createDriver({ target: 'emulator' }),
+    target: 'emulator',
+    seed: 1,
+    manifestDir: dir,
+    env: emuEnv,
+    io: silentIo,
+    keepGoing: true,
+    runId: 'seed-keep',
+  });
+  assert.equal(m.outcome, 'partial');
+  const failedAt = m.steps.findIndex((s) => !s.ok);
+  assert.ok(failedAt >= 0, 'hay un paso fallido');
+  assert.ok(
+    m.steps.length > failedAt + 1,
+    'la corrida siguió después del paso fallido',
+  );
+  const saved = JSON.parse(
+    await readFile(path.join(dir, 'seed-keep.json'), 'utf8'),
+  );
+  assert.equal(saved.outcome, 'partial');
+});
+
+test('si un mint falla a mitad, el manifiesto en disco queda aborted con lo ya acuñado', async () => {
+  const dir = await tmp();
+  const driver = createDriver({ target: 'emulator' });
+  const realMint = driver.mint.bind(driver);
+  let calls = 0;
+  driver.mint = async (a) => {
+    calls += 1;
+    if (calls === 2) throw new Error('cupo agotado');
+    return realMint(a);
+  };
+  await assert.rejects(
+    runScenario({
+      scenario: fullScenario(),
+      scenarioHash: 'h',
+      driver,
+      target: 'emulator',
+      seed: 1,
+      manifestDir: dir,
+      env: emuEnv,
+      io: silentIo,
+      runId: 'seed-mint',
+    }),
+    /acuñando .*cupo agotado/,
+  );
+  const saved = JSON.parse(
+    await readFile(path.join(dir, 'seed-mint.json'), 'utf8'),
+  );
+  assert.equal(saved.outcome, 'aborted');
+  assert.equal(saved.actors.length, 1);
+  assert.ok(saved.roots.some((r) => r.type === 'auth_user'));
 });
 
 test('en conducido, los pasos manuales esperan el prompt, captures pide el código y abort cierra como partial', async () => {
