@@ -1,7 +1,7 @@
 // vc/brix/tests/seeding/manifest.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp } from 'node:fs/promises';
+import { mkdtemp, readdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import {
@@ -114,4 +114,39 @@ test('saveManifest se niega si hay tokens', async () => {
   });
   m.actors.push({ uid: 'u', idToken: 'nope' });
   await assert.rejects(saveManifest(m, dir), /idToken/);
+});
+
+const baseManifest = (runId) =>
+  createManifest({
+    runId,
+    scenario: { id: 'x' },
+    scenarioHash: '1',
+    driver: 'fake',
+    target: 'emulator',
+    mode: 'autonomous',
+    seed: 1,
+  });
+
+test('listManifests sobre un directorio inexistente devuelve []', async () => {
+  const dir = path.join(
+    await mkdtemp(path.join(tmpdir(), 'brix-seed-')),
+    'no-existe',
+  );
+  assert.deepEqual(await listManifests(dir), []);
+});
+
+test('listManifests nombra el archivo ilegible en vez de leerlo como vacío', async () => {
+  const dir = await mkdtemp(path.join(tmpdir(), 'brix-seed-'));
+  await saveManifest(baseManifest('seed-ok'), dir);
+  await writeFile(path.join(dir, 'seed-bad.json'), '{', 'utf8');
+  await assert.rejects(
+    listManifests(dir),
+    /manifiesto ilegible: seed-bad\.json/,
+  );
+});
+
+test('saveManifest escribe de forma atómica: queda el .json y ningún .tmp', async () => {
+  const dir = await mkdtemp(path.join(tmpdir(), 'brix-seed-'));
+  await saveManifest(baseManifest('seed-atomic'), dir);
+  assert.deepEqual(await readdir(dir), ['seed-atomic.json']);
 });

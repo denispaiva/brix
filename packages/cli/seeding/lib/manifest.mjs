@@ -2,7 +2,7 @@
 // El manifiesto es la única memoria de una corrida: qué actores se acuñaron,
 // qué raíces se crearon (para `clean`) y qué pasó en cada paso. Vive fuera
 // del repo y nunca contiene tokens: saveManifest lo verifica antes de escribir.
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import path from 'node:path';
 
@@ -88,12 +88,12 @@ export function manifestDir(env = process.env) {
 export async function saveManifest(m, dir) {
   assertNoTokens(m);
   await mkdir(dir, { recursive: true });
-  await writeFile(
-    path.join(dir, `${m.run_id}.json`),
-    JSON.stringify(m, null, 2) + '\n',
-    'utf8',
-  );
-  return path.join(dir, `${m.run_id}.json`);
+  const finalPath = path.join(dir, `${m.run_id}.json`);
+  // Escritura atómica: un corte a mitad de camino no deja JSON inválido.
+  const tmpPath = `${finalPath}.tmp`;
+  await writeFile(tmpPath, JSON.stringify(m, null, 2) + '\n', 'utf8');
+  await rename(tmpPath, finalPath);
+  return finalPath;
 }
 
 export async function loadManifest(runId, dir) {
@@ -101,16 +101,25 @@ export async function loadManifest(runId, dir) {
 }
 
 export async function listManifests(dir) {
-  let files = [];
+  let files;
   try {
     files = (await readdir(dir)).filter(
       (f) => f.startsWith('seed-') && f.endsWith('.json'),
     );
-  } catch {
+  } catch (e) {
+    // Solo "no hay directorio" significa "no hay corridas"; todo lo demás
+    // (permisos, ruta que no es directorio) es un error que no se disfraza.
+    if (e.code !== 'ENOENT') throw e;
     return [];
   }
   const all = await Promise.all(
-    files.map((f) => readFile(path.join(dir, f), 'utf8').then(JSON.parse)),
+    files.map(async (f) => {
+      try {
+        return JSON.parse(await readFile(path.join(dir, f), 'utf8'));
+      } catch (e) {
+        throw new Error(`manifiesto ilegible: ${f}: ${e.message}`);
+      }
+    }),
   );
   return all.sort((a, b) => (a.started_at < b.started_at ? 1 : -1));
 }
