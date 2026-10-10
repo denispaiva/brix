@@ -147,3 +147,24 @@ test('seed run contra un target no declarado sale 1 con el motivo', async () => 
     /ningún target puede contener "prod"/,
   );
 });
+
+test('seed clean contra un target prod sale 1 con el motivo', async () => {
+  await assert.rejects(
+    execFileAsync('node', [
+      BRIX,
+      'seed',
+      'clean',
+      '--run',
+      'seed-x',
+      '--driver',
+      FAKE,
+      '--target',
+      'prod-x',
+    ]),
+    (err) => {
+      assert.equal(err.code, 1);
+      assert.match(err.stderr, /ningún target puede contener "prod"/);
+      return true;
+    },
+  );
+});

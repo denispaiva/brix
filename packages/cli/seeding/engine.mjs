@@ -294,12 +294,18 @@ export async function runScenario(opts) {
 export async function cleanRun({
   runId,
   driver,
+  target,
   manifestDir = defaultManifestDir(),
 }) {
   const m = await loadManifest(runId, manifestDir);
   if (driver.name !== m.driver)
     throw new Error(
       `la corrida ${runId} es del driver ${m.driver}, no ${driver.name}`,
+    );
+  // Un driver construido para otro target borraría en otro lado y aun así sellaría la corrida como limpia.
+  if (target !== undefined && target !== m.target)
+    throw new Error(
+      `la corrida ${runId} es del target ${m.target}, no ${target}`,
     );
   const r = await driver.delete([...m.roots].reverse(), m);
   m.cleaned_at = new Date().toISOString();
@@ -366,7 +372,12 @@ export async function runSeedCli(
         throw new Error(
           `no se puede limpiar en ${flags.target}:\n - ${g.errors.join('\n - ')}`,
         );
-      const m = await cleanRun({ runId: flags.run, driver, manifestDir: dir });
+      const m = await cleanRun({
+        runId: flags.run,
+        driver,
+        target: flags.target,
+        manifestDir: dir,
+      });
       stdout(
         `corrida ${m.run_id}: borradas ${m.cleanup.deleted.length} raíces, ${m.cleanup.failed.length} fallidas`,
       );

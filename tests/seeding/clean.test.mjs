@@ -1,7 +1,7 @@
 // vc/brix/tests/seeding/clean.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp } from 'node:fs/promises';
+import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import {
@@ -65,4 +65,28 @@ test('clean con otro driver se niega', async () => {
     cleanRun({ runId: 'seed-d', driver: other, manifestDir: dir }),
     /es del driver fake, no otro/,
   );
+});
+
+test('clean con otro target se niega y no sella la corrida como limpia', async () => {
+  const dir = await mkdtemp(path.join(tmpdir(), 'brix-seed-'));
+  const driver = createDriver({ target: 'emulator' });
+  await runScenario({
+    scenario: fullScenario(),
+    scenarioHash: 'h',
+    driver,
+    target: 'emulator',
+    seed: 1,
+    manifestDir: dir,
+    env: emuEnv,
+    runId: 'seed-t',
+  });
+  await assert.rejects(
+    cleanRun({ runId: 'seed-t', driver, target: 'dev-x', manifestDir: dir }),
+    /es del target emulator, no dev-x/,
+  );
+  assert.equal(driver._db.users.size, 5, 'no borró nada');
+  const onDisk = JSON.parse(
+    await readFile(path.join(dir, 'seed-t.json'), 'utf8'),
+  );
+  assert.equal(onDisk.cleaned_at, null);
 });
