@@ -1,7 +1,11 @@
 // vc/brix/tests/seeding/scenario.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateScenario } from '../../packages/cli/seeding/lib/scenario.mjs';
+import {
+  validateScenario,
+  expandSteps,
+  effectiveStep,
+} from '../../packages/cli/seeding/lib/scenario.mjs';
 import { minimalScenario, fakeDriverShape } from './helpers/scenarios.mjs';
 
 test('acepta el escenario mínimo v2', () => {
@@ -119,4 +123,45 @@ test('host_transition valida args.action también dentro de auto', () => {
   );
   s.steps[0].auto.args.action = 'start';
   assert.equal(validateScenario(s).ok, true);
+});
+
+test('expandSteps desenrolla repeat e interpola {alias}', () => {
+  const s = minimalScenario();
+  s.steps.push({
+    repeat: {
+      over: 'event.identifiers',
+      as: 'identifier',
+      steps: [
+        {
+          actor: 'host',
+          op: 'manual',
+          do: 'Abrir ronda con {identifier}',
+          auto: {
+            op: 'host_transition',
+            args: { action: 'open_round', identifier: '{identifier}' },
+          },
+        },
+        { actor: 'bots', op: 'play' },
+      ],
+    },
+  });
+  const flat = expandSteps(s);
+  assert.equal(flat.length, 2 + 4);
+  assert.deepEqual(
+    flat.map((x) => x.n),
+    [1, 2, 3, 4, 5, 6],
+  );
+  assert.equal(flat[2].do, 'Abrir ronda con 1-espadas');
+  assert.equal(flat[2].auto.args.identifier, '1-espadas');
+  assert.equal(flat[4].auto.args.identifier, '1-bastos');
+  assert.deepEqual(flat[5].vars, { identifier: '1-bastos' });
+});
+
+test('effectiveStep usa auto en autónomo (actor = el suplente de la cuenta) y el paso manual en conducido', () => {
+  const [first] = expandSteps(minimalScenario());
+  const auto = effectiveStep(first, 'autonomous');
+  assert.equal(auto.op, 'create_event');
+  assert.equal(auto.actor, 'host');
+  assert.equal(auto.manualOf, first);
+  assert.equal(effectiveStep(first, 'conducted'), first);
 });

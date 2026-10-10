@@ -255,3 +255,54 @@ export function resolvePath(obj, dotted) {
     .split('.')
     .reduce((acc, k) => (acc == null ? undefined : acc[k]), obj);
 }
+
+// Aplana `repeat` en una lista de pasos con `n` secuencial (1-based, ya
+// expandido) e interpola `{alias}` en `do` y en los strings de `args`.
+export function expandSteps(scenario) {
+  const out = [];
+  let n = 0;
+  const push = (step, vars) => {
+    n += 1;
+    out.push({ ...interpolate(step, vars), n, vars });
+  };
+  for (const step of scenario.steps) {
+    if (!step.repeat) {
+      push(step, {});
+      continue;
+    }
+    const list = resolvePath(scenario, step.repeat.over) ?? [];
+    for (const value of list)
+      for (const inner of step.repeat.steps)
+        push(inner, { [step.repeat.as]: value });
+  }
+  return out;
+}
+
+// En autónomo, un paso manual con `auto` se ejecuta como esa operación, con el
+// suplente de la cuenta como actor; en conducido el paso va tal cual.
+export function effectiveStep(step, mode) {
+  if (mode === 'autonomous' && step.op === 'manual' && step.auto) {
+    return {
+      op: step.auto.op,
+      args: step.auto.args,
+      actor: step.auto.actor ?? step.actor,
+      n: step.n,
+      vars: step.vars,
+      manualOf: step,
+    };
+  }
+  return step;
+}
+
+function interpolate(value, vars) {
+  if (typeof value === 'string')
+    return value.replace(/\{(\w+)\}/g, (m, k) =>
+      k in vars ? String(vars[k]) : m,
+    );
+  if (Array.isArray(value)) return value.map((v) => interpolate(v, vars));
+  if (value && typeof value === 'object')
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [k, interpolate(v, vars)]),
+    );
+  return value;
+}
