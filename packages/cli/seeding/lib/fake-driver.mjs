@@ -53,7 +53,8 @@ export function createDriver({ target = 'emulator', log = () => {} } = {}) {
       log(`${name} ${actor?.id ?? ''}`);
       switch (name) {
         case 'create_event': {
-          const ref = `events/${nextId('e')}`;
+          const id = nextId('e');
+          const ref = `events/${id}`;
           db.events.set(
             ref,
             newEvent(ref, {
@@ -65,7 +66,7 @@ export function createDriver({ target = 'emulator', log = () => {} } = {}) {
           );
           return {
             ok: true,
-            result: { event: ref, code: ref.slice(-4) },
+            result: { event: ref, code: id },
             roots: [{ type: 'event', ref }],
           };
         }

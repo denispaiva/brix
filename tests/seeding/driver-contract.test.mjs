@@ -94,3 +94,27 @@ test('el driver falso: el anfitrión que juega es participante y resolve_code si
   assert.equal(resolved.result.event, 'events/ABCD');
   assert.equal(await d.read('participants', { event: 'events/ABCD' }), 0);
 });
+
+test('el driver falso: el código de un evento creado lo reconoce resolve_code', async () => {
+  const d = createDriver({ target: 'emulator' });
+  const host = await d.mint({
+    kind: 'host',
+    id: 'host',
+    alias: 'H',
+    runId: 'r',
+  });
+  const created = await d.op(
+    'create_event',
+    { ...host, kind: 'host', id: 'host' },
+    { participant_limit: 5, wine_count: 4 },
+    { runId: 'r' },
+  );
+  const resolved = await d.op(
+    'resolve_code',
+    null,
+    { code: created.result.code },
+    { runId: 'r' },
+  );
+  assert.equal(resolved.result.event, created.result.event);
+  assert.equal(d._db.events.size, 1);
+});
