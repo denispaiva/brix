@@ -109,3 +109,14 @@ test('rechaza ops que el driver no declara y targets que no tiene', () => {
   assert.match(text, /op "teleport" no existe en el contrato/);
   assert.match(text, /target "staging" no lo declara el driver/);
 });
+
+test('host_transition valida args.action también dentro de auto', () => {
+  const s = minimalScenario();
+  s.steps[0].auto = { op: 'host_transition', args: { action: 'strat' } };
+  assert.match(
+    validateScenario(s).errors.join('\n'),
+    /paso 1: host_transition\.args\.action debe ser uno de/,
+  );
+  s.steps[0].auto.args.action = 'start';
+  assert.equal(validateScenario(s).ok, true);
+});

@@ -126,6 +126,14 @@ export function validateScenario(scenario, { driver, target } = {}) {
     return null;
   };
 
+  // La acción de host_transition se valida igual en la vía directa y en `auto`.
+  const checkHostAction = (op, args, n) => {
+    if (op === 'host_transition' && !HOST_ACTIONS.includes(args?.action))
+      err(
+        `paso ${n}: host_transition.args.action debe ser uno de ${HOST_ACTIONS.join(', ')}`,
+      );
+  };
+
   const checkStep = (step, n) => {
     if (!OPS[step.op]) {
       err(`paso ${n}: op "${step.op}" no existe en el contrato`);
@@ -184,6 +192,7 @@ export function validateScenario(scenario, { driver, target } = {}) {
           err(
             `paso ${n}: el driver no implementa la op "${step.auto.op}" de auto`,
           );
+        checkHostAction(step.auto.op, step.auto.args, n);
       } else if (targetMode === 'autonomous') {
         err(
           `paso ${n}: manual sin auto no puede correr en el target autónomo "${target}"`,
@@ -211,13 +220,7 @@ export function validateScenario(scenario, { driver, target } = {}) {
       err(
         `paso ${n}: la op "${step.op}" exige un bot ${allowed}; "${b.id}" es ${b.kind}`,
       );
-    if (
-      step.op === 'host_transition' &&
-      !HOST_ACTIONS.includes(step.args?.action)
-    )
-      err(
-        `paso ${n}: host_transition.args.action debe ser uno de ${HOST_ACTIONS.join(', ')}`,
-      );
+    checkHostAction(step.op, step.args, n);
   };
 
   if (!Array.isArray(scenario.steps) || scenario.steps.length === 0)
