@@ -21,17 +21,6 @@ export function buildGeminiRequest(key, prompt) {
   };
 }
 
-// Stack por defecto de los proyectos de Blends, tomado de los proyectos que ya
-// existen (Teyst, Melquisedec). Es una preferencia: las notas del proyecto
-// mandan si piden otra cosa, y sin esto el modelo elige un backend por su cuenta.
-export const BLENDS_STACK = `Stack por defecto del ecosistema Blends (úsalo salvo que las notas pidan otra cosa y, si te apartas, justifícalo):
-- Backend: Firebase (Firestore, Authentication, Cloud Functions, Hosting) en el plan Spark; sin Cloud Billing vinculado.
-- Free Tier First: agota las capas gratuitas antes de proponer algo de pago; cualquier servicio con costo va con tope de excedente en cero.
-- App móvil: Expo con expo-router, React Native y TypeScript. App web o PWA: Vite con TypeScript.
-- Gemini desde la app: Firebase AI Logic (no una clave en el cliente).
-- Entorno de ejecución y gestor: Node 24 y pnpm.
-- IDs de proyecto de backend: \`<entorno>-<token>\` con el entorno como prefijo (dev, staging, prod), por ejemplo dev-teyst.`;
-
 export function buildPrompt(notesContent, graduationTarget) {
   return `
 Actúa como Arquitecto Principal de Software para el ecosistema Vibe Coding (Brix).
@@ -40,13 +29,14 @@ Transforma las siguientes notas informales de un proyecto en una especificación
 Notas del proyecto:
 ${notesContent}
 
-${BLENDS_STACK}
+Esto es una idea, no un proyecto graduado: la especificación responde "¿vale la pena?", no "¿cómo se hace?". No propongas tecnologías, lenguajes, frameworks, proveedores ni arquitectura: esa decisión se toma después de graduar. Si las notas ya nombran una tecnología, repítela como dato de entrada sin validarla ni ampliarla.
 
 Devuelve ÚNICAMENTE el contenido del archivo SPEC.md en formato Markdown con las siguientes secciones:
 1. # Visión y Alcance
 2. ## Criterios de Aceptación (Checklist)
-3. ## Arquitectura y Stack Tecnológico
-4. ## Estrategia de Graduación (${graduationTarget})
+3. ## Restricciones y Riesgos de Viabilidad (costo, datos, dependencias externas, aspectos legales; solo lo que podría matar la idea)
+4. ## Preguntas Asesinas Pendientes (lo que falta responder antes del gate de graduación; no inventes respuestas)
+5. ## Estrategia de Graduación (${graduationTarget})
 `;
 }
 
