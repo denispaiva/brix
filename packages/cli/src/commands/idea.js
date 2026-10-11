@@ -40,6 +40,31 @@ Devuelve ÚNICAMENTE el contenido del archivo SPEC.md en formato Markdown con la
 `;
 }
 
+// 429 (límite por minuto) y 503 (modelo saturado) suelen ser transitorios: se
+// reintenta con espera creciente. Cualquier otro estado, o agotar los
+// intentos, devuelve la última respuesta para que el llamador la reporte.
+export const RETRYABLE_STATUS = [429, 503];
+
+export async function fetchWithRetry(url, init, opts = {}) {
+  const {
+    fetchImpl = fetch,
+    sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+    retries = 3,
+    baseDelayMs = 2000,
+    onRetry = () => {},
+  } = opts;
+
+  let response = await fetchImpl(url, init);
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    if (!RETRYABLE_STATUS.includes(response.status)) return response;
+    const delayMs = baseDelayMs * 2 ** (attempt - 1);
+    onRetry({ attempt, retries, status: response.status, delayMs });
+    await sleep(delayMs);
+    response = await fetchImpl(url, init);
+  }
+  return response;
+}
+
 export async function generateSpec(inputFile, options = {}) {
   if (!apiKey) {
     console.error('❌ Error: GEMINI_API_KEY no está definida.');
@@ -72,7 +97,12 @@ export async function generateSpec(inputFile, options = {}) {
   const { url, init } = buildGeminiRequest(apiKey, prompt);
 
   try {
-    const response = await fetch(url, init);
+    const response = await fetchWithRetry(url, init, {
+      onRetry: ({ attempt, retries, status, delayMs }) =>
+        console.log(
+          `⏳ Gemini respondió ${status}; reintento ${attempt}/${retries} en ${delayMs / 1000} s...`,
+        ),
+    });
 
     if (!response.ok) {
       throw new Error(

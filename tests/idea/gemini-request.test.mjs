@@ -37,3 +37,70 @@ test('el prompt incluye las notas y no pide ni propone tecnología', async () =>
   assert.ok(prompt.includes('## Preguntas Asesinas Pendientes'));
   assert.ok(prompt.includes('## Estrategia de Graduación (Nombre de repo)'));
 });
+
+const respuesta = (status) => ({ status, ok: status >= 200 && status < 300 });
+
+function simular(estados, opts = {}) {
+  const llamadas = [];
+  const esperas = [];
+  const fetchImpl = async () => {
+    llamadas.push(1);
+    return respuesta(estados[Math.min(llamadas.length, estados.length) - 1]);
+  };
+  const sleep = async (ms) => {
+    esperas.push(ms);
+  };
+  return { llamadas, esperas, opts: { fetchImpl, sleep, ...opts } };
+}
+
+test('reintenta un 503 con espera creciente y termina en 200', async () => {
+  const { fetchWithRetry } =
+    await import('../../packages/cli/src/commands/idea.js');
+  const s = simular([503, 503, 200]);
+  const r = await fetchWithRetry('u', {}, s.opts);
+  assert.equal(r.status, 200);
+  assert.equal(s.llamadas.length, 3);
+  assert.deepEqual(s.esperas, [2000, 4000]);
+});
+
+test('reintenta un 429', async () => {
+  const { fetchWithRetry } =
+    await import('../../packages/cli/src/commands/idea.js');
+  const s = simular([429, 200]);
+  const r = await fetchWithRetry('u', {}, s.opts);
+  assert.equal(r.status, 200);
+  assert.equal(s.llamadas.length, 2);
+});
+
+test('no reintenta errores que no son transitorios', async () => {
+  const { fetchWithRetry } =
+    await import('../../packages/cli/src/commands/idea.js');
+  for (const estado of [400, 403, 404]) {
+    const s = simular([estado]);
+    const r = await fetchWithRetry('u', {}, s.opts);
+    assert.equal(r.status, estado);
+    assert.equal(s.llamadas.length, 1);
+    assert.deepEqual(s.esperas, []);
+  }
+});
+
+test('al agotar los reintentos devuelve la última respuesta', async () => {
+  const { fetchWithRetry } =
+    await import('../../packages/cli/src/commands/idea.js');
+  const s = simular([503], { retries: 2 });
+  const r = await fetchWithRetry('u', {}, s.opts);
+  assert.equal(r.status, 503);
+  assert.equal(s.llamadas.length, 3);
+  assert.deepEqual(s.esperas, [2000, 4000]);
+});
+
+test('avisa cada reintento por onRetry', async () => {
+  const { fetchWithRetry } =
+    await import('../../packages/cli/src/commands/idea.js');
+  const avisos = [];
+  const s = simular([503, 200], { onRetry: (a) => avisos.push(a) });
+  await fetchWithRetry('u', {}, s.opts);
+  assert.deepEqual(avisos, [
+    { attempt: 1, retries: 3, status: 503, delayMs: 2000 },
+  ]);
+});
