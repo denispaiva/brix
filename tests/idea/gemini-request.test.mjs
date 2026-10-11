@@ -24,3 +24,14 @@ test('el cuerpo lleva el prompt tal cual', () => {
     contents: [{ parts: [{ text: 'notas del proyecto' }] }],
   });
 });
+
+test('el prompt incluye el stack de Blends y las notas', async () => {
+  const { buildPrompt, BLENDS_STACK } =
+    await import('../../packages/cli/src/commands/idea.js');
+  const prompt = buildPrompt('quiero una app de catas', 'Nombre de repo');
+  assert.ok(prompt.includes('quiero una app de catas'));
+  assert.ok(prompt.includes(BLENDS_STACK));
+  assert.ok(BLENDS_STACK.includes('Firebase'));
+  assert.ok(BLENDS_STACK.includes('Free Tier First'));
+  assert.ok(prompt.includes('## Estrategia de Graduación (Nombre de repo)'));
+});
