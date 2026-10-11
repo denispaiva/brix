@@ -3,6 +3,24 @@ import path from 'node:path';
 
 const apiKey = process.env.GEMINI_API_KEY;
 
+export const GEMINI_MODEL = 'gemini-3.8-flash';
+
+// La clave viaja en el encabezado y no en la URL: una URL con ?key= queda en
+// logs, en historiales y en mensajes de error de proxies.
+export function buildGeminiRequest(key, prompt) {
+  return {
+    url: `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+    init: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': key,
+      },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+    },
+  };
+}
+
 export async function generateSpec(inputFile, options = {}) {
   if (!apiKey) {
     console.error('❌ Error: GEMINI_API_KEY no está definida.');
@@ -44,16 +62,10 @@ Devuelve ÚNICAMENTE el contenido del archivo SPEC.md en formato Markdown con la
 
   console.log(`💡 Convirtiendo "${rawPath}" en SPEC.md usando Gemini API...`);
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+  const { url, init } = buildGeminiRequest(apiKey, prompt);
 
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-      }),
-    });
+    const response = await fetch(url, init);
 
     if (!response.ok) {
       throw new Error(
