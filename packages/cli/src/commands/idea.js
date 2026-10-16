@@ -3,6 +3,68 @@ import path from 'node:path';
 
 const apiKey = process.env.GEMINI_API_KEY;
 
+export const GEMINI_MODEL = 'gemini-3.8-flash';
+
+// La clave viaja en el encabezado y no en la URL: una URL con ?key= queda en
+// logs, en historiales y en mensajes de error de proxies.
+export function buildGeminiRequest(key, prompt) {
+  return {
+    url: `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+    init: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': key,
+      },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+    },
+  };
+}
+
+export function buildPrompt(notesContent, graduationTarget) {
+  return `
+Actúa como Arquitecto Principal de Software para el ecosistema Vibe Coding (Brix).
+Transforma las siguientes notas informales de un proyecto en una especificación ejecutable (SPEC.md) formal.
+
+Notas del proyecto:
+${notesContent}
+
+Esto es una idea, no un proyecto graduado: la especificación responde "¿vale la pena?", no "¿cómo se hace?". No propongas tecnologías, lenguajes, frameworks, proveedores ni arquitectura: esa decisión se toma después de graduar. Si las notas ya nombran una tecnología, repítela como dato de entrada sin validarla ni ampliarla.
+
+Devuelve ÚNICAMENTE el contenido del archivo SPEC.md en formato Markdown con las siguientes secciones:
+1. # Visión y Alcance
+2. ## Criterios de Aceptación (Checklist)
+3. ## Restricciones y Riesgos de Viabilidad (costo, datos, dependencias externas, aspectos legales; solo lo que podría matar la idea)
+4. ## Preguntas Asesinas Pendientes (lo que falta responder antes del gate de graduación; no inventes respuestas)
+5. ## Estrategia de Graduación (${graduationTarget})
+`;
+}
+
+// 429 (límite por minuto) y 503 (modelo saturado) suelen ser transitorios: se
+// reintenta con espera creciente. Cualquier otro estado, o agotar los
+// intentos, devuelve la última respuesta para que el llamador la reporte.
+export const RETRYABLE_STATUS = [429, 503];
+
+export async function fetchWithRetry(url, init, opts = {}) {
+  const {
+    fetchImpl = fetch,
+    sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+    retries = 3,
+    baseDelayMs = 2000,
+    onRetry = () => {},
+  } = opts;
+
+  let response = await fetchImpl(url, init);
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    if (!RETRYABLE_STATUS.includes(response.status)) return response;
+    const delayMs = baseDelayMs * 2 ** (attempt - 1);
+    onRetry({ attempt, retries, status: response.status, delayMs });
+    await sleep(delayMs);
+    response = await fetchImpl(url, init);
+  }
+  return response;
+}
+
 export async function generateSpec(inputFile, options = {}) {
   if (!apiKey) {
     console.error('❌ Error: GEMINI_API_KEY no está definida.');
@@ -28,31 +90,18 @@ export async function generateSpec(inputFile, options = {}) {
     ? `Nombre de repo sugerido bajo ${options.org}/`
     : 'Nombre de repo sugerido';
 
-  const prompt = `
-Actúa como Arquitecto Principal de Software para el ecosistema Vibe Coding (Brix).
-Transforma las siguientes notas informales de un proyecto en una especificación ejecutable (SPEC.md) formal.
-
-Notas del proyecto:
-${notesContent}
-
-Devuelve ÚNICAMENTE el contenido del archivo SPEC.md en formato Markdown con las siguientes secciones:
-1. # Visión y Alcance
-2. ## Criterios de Aceptación (Checklist)
-3. ## Arquitectura y Stack Tecnológico
-4. ## Estrategia de Graduación (${graduationTarget})
-`;
+  const prompt = buildPrompt(notesContent, graduationTarget);
 
   console.log(`💡 Convirtiendo "${rawPath}" en SPEC.md usando Gemini API...`);
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+  const { url, init } = buildGeminiRequest(apiKey, prompt);
 
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-      }),
+    const response = await fetchWithRetry(url, init, {
+      onRetry: ({ attempt, retries, status, delayMs }) =>
+        console.log(
+          `⏳ Gemini respondió ${status}; reintento ${attempt}/${retries} en ${delayMs / 1000} s...`,
+        ),
     });
 
     if (!response.ok) {
