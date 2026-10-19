@@ -7,6 +7,7 @@ import {
   hashSeed,
   materializeBots,
   decide,
+  RATING_SCALE,
 } from '../../packages/cli/seeding/lib/bots.mjs';
 import { minimalScenario, fullScenario } from './helpers/scenarios.mjs';
 
@@ -124,5 +125,21 @@ test('todas las PROFILES declaran rangos coherentes', () => {
       name,
     );
     assert.ok(p.delay[0] <= p.delay[1] && p.delay[1] <= 1, name);
+  }
+});
+
+test('la decisión de un bot declara la escala de su rating, para que el driver la convierta', () => {
+  assert.equal(RATING_SCALE, 10);
+  for (const profile of ['expert', 'novice', 'random']) {
+    const d = decide({
+      profile,
+      seed: 7,
+      botIndex: 0,
+      roundIndex: 0,
+      labels: ['a', 'b'],
+      truth: 'a',
+    });
+    assert.equal(d.ratingScale, RATING_SCALE, profile);
+    assert.ok(d.rating >= 1 && d.rating <= RATING_SCALE, profile);
   }
 });
