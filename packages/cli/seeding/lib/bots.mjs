@@ -6,6 +6,11 @@
 // random y se anota. Los suplentes de las cuentas reales son bots más.
 import { ACCOUNTS_ACTOR, standInKind } from './scenario.mjs';
 
+// Escala en la que los perfiles puntúan. La decisión de cada bot la declara
+// (`ratingScale`) para que el driver de cada producto la convierta a la suya:
+// el motor no conoce ninguna escala de producto.
+export const RATING_SCALE = 10;
+
 export const PROFILES = {
   expert: { hit: 0.9, rating: [8, 10], delay: [0.1, 0.3] },
   steady: { hit: 0.6, rating: [6, 8], delay: [0.3, 0.6] },
@@ -114,6 +119,7 @@ export function decide({
   return {
     label,
     rating: pick(p.rating),
+    ratingScale: RATING_SCALE,
     delayFraction: Number(between(p.delay).toFixed(3)),
     skipped,
     degraded,
