@@ -26,7 +26,7 @@ Ventana: 2026-08-06 (bootstrap del repo) a 2026-09-13 inclusive, sobre
 `denispaiva/blends`.
 
 - **Entregable:** serie de
-  [`scripts/kpi-history.mjs`](../../scripts/kpi-history.mjs), versionada en
+  `scripts/kpi-history.mjs` (en la instancia; `vc/brix/scripts/kpi-history.mjs` del precursor en `4742bb99`), versionada en
   `data/kpi-history/2026-09-13.json` (precursor privado, `vc/brix/data/kpi-history/2026-09-13.json` en `4742bb99`)
   (F2). Recorre la historia first-parent de `main` y cuenta los entregables de
   todos los `.roadmap.json`, sin el de ejemplo.
