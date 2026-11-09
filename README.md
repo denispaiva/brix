@@ -143,180 +143,25 @@ conviene commitearlas.
 
 ## Instrumentos de la Fase 0
 
-Viven en `scripts/`, fuera de los comandos del CLI, por la decisión D1 del
-2026-09-13. Leen solo metadatos, corren en local y escriben series agregadas
-en `data/`, que se versionan. El caché de la API queda en `.cache/`, que no.
-
-### Minutos de GitHub Actions por rama
-
-```bash
-node scripts/actions-minutes.mjs --cycle 2026-09 --all-monitor-repos
-```
-
-Reconstruye la factura del ciclo como lo hace el monitor de escasez de
-blends: lista las corridas creadas desde el primer día del ciclo, pide los
-jobs de cada corrida terminada, y factura cada job redondeando hacia arriba
-a minuto entero, con el multiplicador por sistema operativo que aplica
-GitHub. Después imputa cada corrida a una rama:
-
-| Corrida                                            | Se imputa a                                                                           |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| PR sobre una rama común                            | esa rama, entera                                                                      |
-| PR de un tren `tren/<fecha>`                       | sus vagones, 1/N cada uno, leídos de los mensajes `merge: vagón` de la punta del tren |
-| Push a `main` tras mergear un tren                 | los mismos vagones, 1/N                                                               |
-| Push a `main` tras mergear o hacer squash de un PR | la rama de ese PR                                                                     |
-| Corrida programada o disparada a mano              | el cubo `workflow:<nombre>`, sin rama                                                 |
-
-El reparto 1/N es la decisión D3: el costo de una entrega es por corrida,
-no por tamaño, así que un vagón de un archivo y uno de veinte pagan lo mismo.
-
-La serie va a `data/actions-minutes/<ciclo>.json`, con totales, minutos por
-rama, minutos por día, cubos sin atribuir y la validación contra el monitor:
-el total medido tiene que quedar a menos del 10 % de los minutos que el
-monitor publica en `GH_SCARCITY_STATUS`. Sin `--all-monitor-repos` mide
-solo el repo del remote, y avisa que el conjunto no es comparable.
-
-Flags: `--cycle AAAA-MM`, `--repos a,b`, `--all-monitor-repos`, `--out <ruta>`.
-Necesita `gh` autenticado y un clon donde existan las puntas de los trenes.
-Una punta que el clon no tiene se imputa al nombre del tren, sin inventar
-vagones. Las pruebas están en `scripts/tests/`.
-
-### Ventana de contexto por rama
-
-```bash
-node scripts/context-window.mjs --cycle 2026-09
-```
-
-Recorre en streaming los transcripts locales de Claude Code del repo y de
-todos sus worktrees, en `~/.claude/projects/`, y de cada respuesta del modelo
-toma cuatro contadores de uso, la marca de tiempo, la sesión y la rama. Nunca
-lee el contenido de los mensajes, y la serie que escribe en
-`data/context-window/<ciclo>.json` solo tiene agregados: totales, por rama y
-por día.
-
-El contexto de una llamada es todo lo que entró al modelo: tokens de
-entrada, de creación de caché y de lectura de caché. El caché abarata, no
-achica la ventana, y la serie informa qué parte vino de ahí.
-
-Una misma respuesta aparece repetida en el transcript, una línea por bloque
-de contenido, con el mismo uso en todas. El instrumento deduplica por id de
-mensaje; sin eso la serie se infla más del doble.
-
-No hay una fuente externa de tokens contra la cual validar, porque las
-suscripciones no exponen consumo. La serie declara esa ausencia y se
-verifica por reproducibilidad entre corridas. Todavía no cubre Codex ni
-Cowork.
-
-Flags: `--cycle AAAA-MM`, `--projects <carpeta>`, `--repo <raíz del clon>`,
-`--out <ruta>`.
-
-### Atención del PO por rama
-
-```bash
-node scripts/po-attention.mjs --cycle 2026-09
-```
-
-Es un indicador, no una medida. Lo único que deja un transcript sobre la
-atención humana es cuándo se escribió cada turno. El instrumento cuenta los
-turnos humanos y suma el tiempo entre turnos consecutivos de una misma sesión,
-con un tope por hueco para que una sesión abandonada no cuente horas. No
-captura el tiempo de lectura después del último turno.
-
-**Se reporta como banda**, por la decisión D4 del PO del 2026-09-13. El piso es
-la atención calculada con un tope de 5 minutos por hueco, y el techo la
-calculada con 15. Los dos topes son supuestos sobre el mismo hueco: con 5, un
-silencio largo es distracción; con 15, es lectura o espera del agente. Ninguno
-de los dos valores se reporta solo, porque el número depende casi por completo
-del tope elegido.
-
-En el total y por día, el piso siempre queda por debajo del techo, porque la
-unión de intervalos crece con el tope. **Por rama, la banda es el rango entre
-las dos estimaciones**: el reparto de los tramos simultáneos puede darle a una
-rama más minutos con el tope bajo, porque con el alto su intervalo se superpone
-más con otras sesiones. En el ciclo 2026-09 pasó en 3 de 36 ramas, por hasta 3
-minutos. Por eso la suma de los pisos de las ramas puede no coincidir con el
-piso total.
-
-Como es una sola persona, las sesiones simultáneas no suman: el total es la
-unión de los intervalos, y un tramo en que hay varias sesiones activas se
-reparte en partes iguales entre sus ramas, igual que el 1/N de los trenes.
-Sin esto, un día con sesiones en paralelo llegaba a 22,8 horas.
-
-Qué excluye, y cómo lo reconoce:
-
-| Excluido                                  | Cómo se reconoce                                                                                                      |
-| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Notificaciones de tareas en segundo plano | `origin.kind` es `task-notification`                                                                                  |
-| Sospechosos de tarea programada           | el turno corre en modo de permisos `default`, que las sesiones interactivas casi no usan; es una heurística declarada |
-| Origen desconocido                        | versiones viejas sin campo `origin`; se cuentan aparte, sin sumar                                                     |
-
-La serie en `data/po-attention/<ciclo>.json` trae turnos y sesiones, y minutos
-con piso y techo por rama y por día, además de los excluidos, los topes usados
-y la advertencia de que no hay validación externa.
-
-Una sesión abierta en un worktree con HEAD desacoplado aparece bajo la rama
-`HEAD`, sin atribución posible a un entregable. Lo mismo vale para la serie de
-ventana de contexto.
-
-Flags: `--cycle AAAA-MM`, `--low-cap <minutos>` y `--high-cap <minutos>` para
-otra banda, `--gap-cap <minutos>` para un tope único de sensibilidad, que se
-escribe aparte como `<ciclo>-tope-<minutos>.json` y nunca pisa la serie oficial,
-`--projects <carpeta>`, `--repo <raíz del clon>`, `--out <ruta>`.
-
-## Diagnóstico del KPI de entrega
-
-### Historia del KPI sobre los roadmaps
-
-```bash
-node scripts/kpi-history.mjs --ref origin/main
-```
-
-Instrumento del frente F2 de la Fase 0, que diagnostica por qué el KPI de
-entrega nunca tuvo datos. Recorre la historia first-parent de la referencia,
-toma el último commit de cada día que tocó un `.roadmap.json`, y cuenta los
-entregables por estado, por estado de medición y por presencia de `actuals`.
-Si la punta de la referencia es posterior, la agrega como último día.
-
-Calcula además, para cada entregable que hoy está en revisión, desde cuándo
-lo está sin interrupción. Es la evidencia del estancamiento: el chequeo del
-tablero que corre en CI rechaza aceptar un entregable sin medición, y nada
-produce mediciones.
-
-La serie va a `data/kpi-history/<fecha de la punta>.json`. Solo lee datos del
-repo con git y no modifica nada. Por defecto excluye `roadmap/example.roadmap.json`,
-que es una plantilla con datos ficticios. Un entregable que cambió de carpeta,
-como Brix al graduarse de `ideas/` a `vc/`, cambia de clave y su racha
-arranca de cero.
-
-Flags: `--ref <referencia>`, `--repo <clon>`, `--include-example`, `--out <ruta>`.
+Los instrumentos de medición de la Fase 0 (minutos de Actions, ventana de contexto y atención del PO por rama, e historia del KPI de entrega) miden un portfolio concreto y escriben sus series en él. Por eso quedaron en la instancia que los usa y no forman parte de este repositorio (VCX-D056, decisión del 2026-11-09).
 
 ## Estructura
 
 ```
-scripts/
-  actions-minutes.mjs          instrumento F1: minutos de Actions por rama
-  context-window.mjs           instrumento F1: ventana de contexto por rama
-  po-attention.mjs             instrumento F1: atención del PO por rama
-  kpi-history.mjs              instrumento F2: historia del KPI de entrega
-  lib/transcripts.mjs          lectura compartida de los transcripts locales
-  tests/                       pruebas de los instrumentos
-data/
-  actions-minutes/             series versionadas por ciclo
-  context-window/              series versionadas por ciclo
-  po-attention/                series versionadas por ciclo
-  kpi-history/                 series versionadas por fecha de la punta
 packages/cli/
   bin/brix.js                  punto de entrada y orquestación de flags
   src/commands/                idea, graduate, ci
   src/lib/                     parser de flags y carga de configuración
-  scripts/score-evaluator.js   evaluador contra la API de Gemini
-  scoring/matrix.md            matriz de 100 puntos
+  scoring/                     motor de scoring de tooling y su política
+  finops/                      validación y agregación de billing ledgers
+  seeding/                     motor de escenarios de datos de prueba
+tests/                         pruebas de los motores y del cableado del CLI
+docs/decisions/                registros de decisión de Brix
 ```
 
 ## Origen
 
-Brix se incuba dentro del monorepo `denispaiva/blends`, en `vc/brix/`. Este
-repo se actualiza desde ahí con `git subtree split`, que conserva el historial.
+Brix se incubó dentro del monorepo privado `denispaiva/blends`, en `vc/brix/`. Este repositorio es su fuente canónica desde la extracción: conserva el historial de esa carpeta, filtrado por rutas y con autoría reescrita, desde el commit `4742bb99`. Las referencias a documentos del monorepo quedan como texto con su procedencia.
 
 ## Licencia
 
