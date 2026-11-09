@@ -28,7 +28,7 @@ jobs:
         with:
           node-version: 24
       - name: Pruebas
-        run: node --test tests/
+        run: node --test 'tests/**/*.test.mjs'
       - name: El CLI arranca
         run: node packages/cli/bin/brix.js
       - name: El paquete incluye sus motores
