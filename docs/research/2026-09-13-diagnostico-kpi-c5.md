@@ -17,7 +17,7 @@ Este documento entrega las dos: la causa verificada, y el mecanismo que el PO ap
 
 ## Evidencia
 
-La serie sale de [`scripts/kpi-history.mjs`](../../scripts/kpi-history.mjs),
+La serie sale de `scripts/kpi-history.mjs` (en la instancia; `vc/brix/scripts/kpi-history.mjs` del precursor en `4742bb99`),
 que recorre la historia first-parent de `main` y cuenta los entregables de
 todos los roadmaps, sin el de ejemplo. Dos corridas sobre `main` en `60e5c57`
 dan la misma serie, versionada en

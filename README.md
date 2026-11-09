@@ -7,14 +7,38 @@ subcarpetas de un monorepo a repos independientes y genera el workflow de CI.
 El nombre viene de los grados Brix: la medida del azúcar en el mosto que
 anticipa la calidad del vino antes de la cosecha.
 
-> **Este repositorio es un espejo de solo lectura.** La fuente de verdad de
-> Brix es `vc/brix/` dentro del monorepo privado `denispaiva/blends`. Los
-> cambios se hacen allá y llegan acá con `git subtree split`. Un commit hecho
-> directamente en este repo hace que el próximo push del espejo sea rechazado,
-> hasta descartarlo.
-
-**Proyecto graduado el 2026-09-13.** El registro de la decisión está en
+Repositorio canónico de Brix desde el 2026-11-09 (VCX-D056); ver [Origen](#origen). **Proyecto graduado el 2026-09-13.** El registro de la decisión está en
 [`docs/decisions/0001-graduation.md`](docs/decisions/0001-graduation.md).
+
+## Misión
+
+Proveer capacidades e instrumentos técnicos reutilizables que ejecuten operaciones con entradas, permisos y resultados verificables.
+
+## Visión
+
+Que proyectos y equipos puedan adoptar capacidades de ingeniería de forma independiente, con beneficio demostrable, interfaces estables y configuración explícita, tanto dentro como fuera de Blends.
+
+## Destinatarios y alcance
+
+Se dirige a desarrolladores, agentes, proyectos y orquestadores. El alcance conceptual incluye scoring y evaluación de herramientas, medición, generación de especificaciones y scaffolding, motores de FinOps, validación y siembra de escenarios, diseño y operaciones Git. La disponibilidad real de cada capacidad debe verificarse en su implementación; esta lista no declara todas como implementadas.
+
+**Entradas previstas:** solicitudes, datos, configuración y permisos explícitos, junto con drivers cuando una capacidad los requiera.
+
+**Resultados previstos:** resultados estructurados, diagnósticos, errores y evidencia reproducible con límites claros.
+
+Brix no prescribe el proceso de gobierno de un equipo ni adopta decisiones en su nombre. No presupone un Cellar, busca rutas históricas de Blends o accede a implementaciones privadas ajenas. Los drivers que conocen un backend particular pertenecen al producto consumidor.
+
+Brix es el núcleo de capacidades técnicas de VCX, según VCX-D029. La denominación «kernel» queda reservada al núcleo de gobierno del sistema existente, conforme a la [arquitectura](https://github.com/denispaiva/vcx/blob/main/docs/architecture/overview.md#fronteras-y-contexto). El código específico de cada producto y de cada proyecto vive en su propio repositorio; Brix provee capacidades y no aloja ese código.
+
+## Capacidades objetivo y skills
+
+La [capacidad de preparación de ideas](docs/idea-intake.md) documenta el requisito `/idea <texto o archivo>`: aplicar una plantilla, invocar preguntas asesinas y producir un Markdown revisable. Aún no está implementada y no equivale al generador de especificaciones `brix idea` del sistema existente.
+
+Las [interfaces de comandos](docs/commands.md) fijan `brix idea` = `/idea` y `brix council` = `/council`, con ayuda para completar parámetros. Son capacidades objetivo compartidas entre CLI y conversación; Blends coordina su uso dentro del recorrido. Las skills propias viven en `.agents/skills/`, la carpeta del estándar abierto que Codex descubre; `.claude/skills` es un symlink de directorio a esa carpeta para Claude Code, que no lee `.agents/skills`. Se descubren solo desde este directorio, y otro consumidor las copia con su procedencia, según VCX-D033.
+
+La [capacidad de arquitectura de referencia](docs/reference-architecture.md) documenta el modelo propuesto que alimentará FinOps después del ingreso de la idea. Su interfaz está por implementar; el motor de ledger existente no demuestra generación automática de arquitectura o estimaciones.
+
+Para trabajar en el repositorio: leer este documento y [AGENTS.md](AGENTS.md). Las decisiones de Brix están en [docs/decisions](docs/decisions/README.md).
 
 ## Requisitos
 
