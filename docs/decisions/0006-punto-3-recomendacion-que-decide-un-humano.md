@@ -15,7 +15,7 @@ El texto anterior decía: «un benchmark basado en trabajo real elige el modelo 
 
 ## Por qué
 
-- **Coherencia con la regla de bindings.** [`role-matrix.md`](../../../docs/standards/role-matrix.md) fija que el binding vigente por agente en `vc/tooling/lifecycle/model-baselines.json` «solo lo actualiza una decisión humana», y que nunca se infiere ni se observa. Una elección automática exigiría derogar esa regla. Una recomendación no la toca.
+- **Coherencia con la regla de bindings.** `role-matrix.md` (precursor privado, `vc/docs/standards/role-matrix.md` en `4742bb99`) fija que el binding vigente por agente en `vc/tooling/lifecycle/model-baselines.json` «solo lo actualiza una decisión humana», y que nunca se infiere ni se observa. Una elección automática exigiría derogar esa regla. Una recomendación no la toca.
 - **No hay base para automatizar.** Los bindings de hoy son Claude y Codex bajo suscripción, que no exponen precio por token, y ningún entregable acumula todavía `actuals` (0 de 32 al 2026-10-01). El punto 3 depende del 2, y el 2 depende de que haya datos.
 - **Es la salida de menor costo.** Las otras dos opciones eran archivar el punto 3 o mantenerlo con la colisión abierta. La primera tira una pregunta que sigue vigente; la segunda deja a Brix con una promesa que su propio gobierno prohíbe cumplir.
 

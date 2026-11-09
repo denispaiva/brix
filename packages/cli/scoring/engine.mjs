@@ -243,14 +243,14 @@ function buildEvaluationRefs(toolingRoot, candidateId, cwd) {
  * autor del evidence input haya puesto ahí — para que el caller lo persista tal cual.
  *
  * `options.refs`, si viene, son las referencias legibles (buildEvaluationRefs) que se
- * persisten en el registro; por defecto usa el literal de blends para no romper a
- * quien llamaba esta función antes de la migración sin pasar refs explícito.
+ * persisten en el registro; por defecto, las mismas que buildEvaluationRefs da
+ * cuando la carpeta de tooling es el directorio de invocación.
  */
 export async function runEvaluation(input, policy, options = {}) {
   const now = options.now ?? new Date();
   const observedAt = now.toISOString();
   const refs = options.refs ?? {
-    evidenceInputRef: `vc/tooling/evaluations/${input.candidate.id}.evidence.json`,
+    evidenceInputRef: `evaluations/${input.candidate.id}.evidence.json`,
     sourceEvidence: `../../docs/tooling/evaluations.md#${input.candidate.id}`,
   };
 

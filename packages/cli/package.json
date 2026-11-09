@@ -33,8 +33,9 @@
   "files": [
     "bin",
     "src",
-    "scripts",
-    "scoring"
+    "scoring",
+    "finops",
+    "seeding"
   ],
   "scripts": {
     "start": "node ./bin/brix.js",

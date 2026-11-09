@@ -34,12 +34,12 @@ Fuente: [veredicto de formato](../research/2026-09-13-formato-codex-cowork.md).
 
 - **Minutos de Actions:** serie reproducible y atribuible. Se validó contra el
   monitor de escasez: 2.321 minutos medidos contra 2.303 del monitor, 0,8 % de
-  desvío con tolerancia de 10 % ([serie](../../data/actions-minutes/2026-09.json)).
+  desvío con tolerancia de 10 % (serie (precursor privado, `vc/brix/data/actions-minutes/2026-09.json` en `4742bb99`)).
 - **Ventana de contexto:** serie reproducible y atribuible para Claude Code,
   sin fuente externa contra la cual validar
-  ([serie](../../data/context-window/2026-09.json)).
+  (serie (precursor privado, `vc/brix/data/context-window/2026-09.json` en `4742bb99`)).
 - **Atención del PO:** indicador reproducible, reportado como banda entre topes
-  de 5 y 15 minutos (D4) ([serie](../../data/po-attention/2026-09.json)).
+  de 5 y 15 minutos (D4) (serie (precursor privado, `vc/brix/data/po-attention/2026-09.json` en `4742bb99`)).
 - **Codex:** su consumo se puede obtener y atribuir a una rama, pero no tiene
   instrumento, y su instrumentación se difirió a esta revisión. **Cowork:** se
   puede obtener pero no atribuir, así que queda fuera del veredicto.
@@ -69,9 +69,9 @@ causa está verificada contra la historia: nunca hubo un productor de
 
 | Mecanismo                                                | Estado en main                                                                                                                                                                                     |
 | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| M1: avisar entregables estancados en revisión            | Implementado: [`review-staleness.mjs`](../../../tools/lib/review-staleness.mjs)                                                                                                                    |
+| M1: avisar entregables estancados en revisión            | Implementado: `review-staleness.mjs` (precursor privado, `vc/tools/lib/review-staleness.mjs` en `4742bb99`)                                                                                                                    |
 | M3: aceptar con medición pendiente (`measurementWaiver`) | Implementado; **0 entregables lo usan**, así que los 8 aprobados por el PO siguen en revisión                                                                                                      |
-| M2: productor de los tres recursos por entregable        | Escrito ([`produce-resource-actuals.mjs`](../../../tools/produce-resource-actuals.mjs)); **ningún paso de `recycle.mjs` ni de `train.mjs` lo llama**, y `vc/brix/data/resource-actuals/` no existe |
+| M2: productor de los tres recursos por entregable        | Escrito (`produce-resource-actuals.mjs` (precursor privado, `vc/tools/produce-resource-actuals.mjs` en `4742bb99`)); **ningún paso de `recycle.mjs` ni de `train.mjs` lo llama**, y `vc/brix/data/resource-actuals/` no existe |
 
 M2 además depende de D6: cada entregable declara su rama con una entrada
 `rama:<nombre>` en `performance.evidence`. Hoy **0 de 10** `.roadmap.json` la

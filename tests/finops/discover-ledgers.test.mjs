@@ -1,10 +1,12 @@
-// vc/brix/tests/finops/discover-ledgers.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, rm, mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { discoverLedgers } from '../../packages/cli/finops/engine.mjs';
+
+// Layout de una instancia tipo: portfolio en vc/ y framework con costo compartido.
+const OPTIONS = { portfolioDir: 'vc', excludeDirs: ['framework'] };
 
 async function makeFixtureRepo(t) {
   const root = await mkdtemp(path.join(tmpdir(), 'discover-ledgers-'));
@@ -50,13 +52,13 @@ async function makeFixtureRepo(t) {
 
 test('discoverLedgers: encuentra el ledger compartido de vc/finops/', async (t) => {
   const root = await makeFixtureRepo(t);
-  const { shared } = await discoverLedgers(root);
+  const { shared } = await discoverLedgers(root, OPTIONS);
   assert.equal(shared, path.join(root, 'vc', 'finops', 'billing-ledger.json'));
 });
 
 test('discoverLedgers: un proyecto con finops/ aparece con su path', async (t) => {
   const root = await makeFixtureRepo(t);
-  const { projects } = await discoverLedgers(root);
+  const { projects } = await discoverLedgers(root, OPTIONS);
   const a = projects.find((p) => p.project === 'proyecto-a');
   assert.equal(
     a.path,
@@ -66,14 +68,14 @@ test('discoverLedgers: un proyecto con finops/ aparece con su path', async (t) =
 
 test('discoverLedgers: un proyecto SIN finops/ aparece con path null', async (t) => {
   const root = await makeFixtureRepo(t);
-  const { projects } = await discoverLedgers(root);
+  const { projects } = await discoverLedgers(root, OPTIONS);
   const b = projects.find((p) => p.project === 'proyecto-b');
   assert.equal(b.path, null);
 });
 
 test('discoverLedgers: vc/framework nunca aparece en projects (su costo es el ledger compartido)', async (t) => {
   const root = await makeFixtureRepo(t);
-  const { projects } = await discoverLedgers(root);
+  const { projects } = await discoverLedgers(root, OPTIONS);
   assert.equal(
     projects.find((p) => p.project === 'framework'),
     undefined,
@@ -82,9 +84,20 @@ test('discoverLedgers: vc/framework nunca aparece en projects (su costo es el le
 
 test('discoverLedgers: vc/docs (sin .roadmap.json) no aparece en projects', async (t) => {
   const root = await makeFixtureRepo(t);
-  const { projects } = await discoverLedgers(root);
+  const { projects } = await discoverLedgers(root, OPTIONS);
   assert.equal(
     projects.find((p) => p.project === 'docs'),
     undefined,
   );
+});
+
+test('discoverLedgers: sin portfolioDir falla con un mensaje que lo nombra', async (t) => {
+  const root = await makeFixtureRepo(t);
+  await assert.rejects(discoverLedgers(root), /portfolioDir/);
+});
+
+test('discoverLedgers: sin excludeDirs, framework con .roadmap.json cuenta como proyecto', async (t) => {
+  const root = await makeFixtureRepo(t);
+  const { projects } = await discoverLedgers(root, { portfolioDir: 'vc' });
+  assert.ok(projects.find((p) => p.project === 'framework'));
 });

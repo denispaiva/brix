@@ -1,5 +1,4 @@
 {
-  "$schema": "../../../../vc/docs/standards/role-matrix.schema.json",
   "schemaVersion": "1.8.0",
   "project": "brix",
   "roles": {

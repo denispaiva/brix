@@ -4,8 +4,8 @@
 - Registro escrito el 2026-10-10.
 - Autoridad: Denis Paiva (product-owner)
 - Estado: aceptada
-- Origen: la [spec de diseño](../../../../docs/superpowers/specs/2026-10-06-brix-seeding-capability-design.md)
-  y su [plan de implementación](../../../../docs/superpowers/plans/2026-10-06-brix-seeding-capability.md),
+- Origen: la spec de diseño (precursor privado, `docs/superpowers/specs/2026-10-06-brix-seeding-capability-design.md` en `4742bb99`)
+  y su plan de implementación (precursor privado, `docs/superpowers/plans/2026-10-06-brix-seeding-capability.md` en `4742bb99`),
   con los registros [0003](./0003-scoring-motor.md) (motor del Scoring Skill) y
   [0004](./0004-finops-motor.md) (motor de FinOps) como precedentes de forma: un
   motor que vive en `vc/brix/packages/cli/<motor>/`. La diferencia es que acá el
@@ -94,10 +94,10 @@ el 2026-10-06 como D-7 de la spec.
 
 ## Referencias
 
-- [Spec de diseño](../../../../docs/superpowers/specs/2026-10-06-brix-seeding-capability-design.md):
+- Spec de diseño (precursor privado, `docs/superpowers/specs/2026-10-06-brix-seeding-capability-design.md` en `4742bb99`):
   «Qué es esto», «Decisiones de encuadre» (D-1..D-8), «Arquitectura»,
   «Limpieza» y «Entrega».
-- [Plan de implementación](../../../../docs/superpowers/plans/2026-10-06-brix-seeding-capability.md).
+- Plan de implementación (precursor privado, `docs/superpowers/plans/2026-10-06-brix-seeding-capability.md` en `4742bb99`).
 - [0003 — Motor del Scoring Skill](./0003-scoring-motor.md) y
   [0004 — Motor de FinOps](./0004-finops-motor.md): precedentes de forma, con
   inversión de dependencia.

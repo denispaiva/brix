@@ -27,7 +27,7 @@ Ventana: 2026-08-06 (bootstrap del repo) a 2026-09-13 inclusive, sobre
 
 - **Entregable:** serie de
   [`scripts/kpi-history.mjs`](../../scripts/kpi-history.mjs), versionada en
-  [`data/kpi-history/2026-09-13.json`](../../data/kpi-history/2026-09-13.json)
+  `data/kpi-history/2026-09-13.json` (precursor privado, `vc/brix/data/kpi-history/2026-09-13.json` en `4742bb99`)
   (F2). Recorre la historia first-parent de `main` y cuenta los entregables de
   todos los `.roadmap.json`, sin el de ejemplo.
 - **Vagón:** `gh pr view <n> --json mergeCommit` sobre cada PR `tren/...`

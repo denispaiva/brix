@@ -3,8 +3,8 @@
 - Fecha: 2026-09-15
 - Autoridad: Denis Paiva (product-owner)
 - Estado: aceptada
-- Origen: la [spec de diseño](../../../../docs/superpowers/specs/2026-09-15-brix-finops-motor-design.md)
-  y su [plan de implementación](../../../../docs/superpowers/plans/2026-09-15-brix-finops-motor.md),
+- Origen: la spec de diseño (precursor privado, `docs/superpowers/specs/2026-09-15-brix-finops-motor-design.md` en `4742bb99`)
+  y su plan de implementación (precursor privado, `docs/superpowers/plans/2026-09-15-brix-finops-motor.md` en `4742bb99`),
   con el registro 0003 (motor del Scoring Skill mudado a `vc/brix/`, mismo patrón,
   en la rama `tooling/brix-scoring-motor-migration`, no mergeada) como precedente
   directo: el mismo movimiento — motor del framework mudado a Brix, envoltorio

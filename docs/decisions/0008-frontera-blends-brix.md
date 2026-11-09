@@ -6,7 +6,7 @@
 - Origen: el pedido `BL-20261016-frontera-blends-brix` (opción A, recomendada por
   arquitectura y decidida por el PO el 2026-10-18). Precisa la definición del PO
   del 2026-09-25 que abre
-  [`brix-capabilities.md`](../../../docs/tooling/brix-capabilities.md): Brix ejecuta
+  `brix-capabilities.md` (precursor privado, `vc/docs/tooling/brix-capabilities.md` en `4742bb99`): Brix ejecuta
   las buenas prácticas de ingeniería; Blends gestiona el portfolio con ciclo de
   vida y control de eficiencia.
 
@@ -50,7 +50,7 @@ todavía no sabe separar de la política de su único consumidor.
   (EP-04, hasta el 25 de octubre de 2026) sigue fijando que el CLI no gana
   funciones nuevas hasta que un entregable tenga actuals producidos por Brix.
 - **No se reclasifica ninguna entrada del registro de capacidades.** El registro
-  sigue en [`vc/tooling/brix-capabilities.json`](../../../tooling/brix-capabilities.json).
+  sigue en `vc/tooling/brix-capabilities.json` (precursor privado, `vc/tooling/brix-capabilities.json` en `4742bb99`).
 
 ## Casos que este criterio deja a la vista
 

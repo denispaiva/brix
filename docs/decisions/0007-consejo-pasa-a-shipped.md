@@ -1,7 +1,7 @@
 # 0007 — El consejo pasa de deprecated a shipped
 
 - Fecha: 2026-10-11
-- Autoridad: Denis Paiva (product-owner). Aprobó la [spec](../../../../docs/superpowers/specs/2026-10-11-brix-council-slash-design.md) y su plan el 2026-10-11.
+- Autoridad: Denis Paiva (product-owner). Aprobó la spec (precursor privado, `docs/superpowers/specs/2026-10-11-brix-council-slash-design.md` en `4742bb99`) y su plan el 2026-10-11.
 - Estado: aceptada, **con el motivo pendiente del PO**
 - Origen: el commit `28a1903c` (2026-09-27) pasó `skill.llm-council` a `deprecated` por «decisión del PO de no construirla por ahora». El motivo de fondo nunca se escribió.
 

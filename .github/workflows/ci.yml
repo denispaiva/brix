@@ -1,30 +1,40 @@
-name: Brix Vibe Coding CI
+name: CI
+
+# Corre las pruebas de Brix en runners estándar. En un repositorio público no
+# consume cuota de Actions (VCX-D032). Sin tokens: las pruebas no tocan la red.
 
 on:
   push:
-    branches: [ main, tooling/* ]
-    paths:
-      - 'packages/**'
-      - 'ideas/**'
-      - '.github/workflows/ci.yml'
+    branches: [main]
   pull_request:
-    branches: [ main ]
-    paths:
-      - 'packages/**'
-      - 'ideas/**'
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  governance-audit:
+  test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js v24
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-
-      - name: Verify Brix CLI Operational Status
+      - name: Pruebas
+        run: node --test tests/ scripts/tests/
+      - name: El CLI arranca
+        run: node packages/cli/bin/brix.js
+      - name: El paquete incluye sus motores
         run: |
-          node packages/cli/bin/brix.js
+          cd packages/cli
+          npm pack --dry-run --json > /tmp/pack.json
+          for dir in bin src scoring finops seeding; do
+            node -e "const f=require('/tmp/pack.json')[0].files.map(x=>x.path); if(!f.some(p=>p.startsWith('$dir/'))){console.error('falta $dir/ en el paquete');process.exit(1)}"
+          done

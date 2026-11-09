@@ -36,7 +36,7 @@ Hechos comprobados al preparar esta propuesta, que condicionan el plan:
 
 | Hecho | Consecuencia para el plan |
 |---|---|
-| El [esquema del roadmap](../../../../roadmap/status.schema.json) solo acepta tokens y defectos en `actuals`, y no admite campos adicionales | Los tres recursos escasos no tienen dónde registrarse hoy |
+| El esquema del roadmap (precursor privado, `roadmap/status.schema.json` en `4742bb99`) solo acepta tokens y defectos en `actuals`, y no admite campos adicionales | Los tres recursos escasos no tienen dónde registrarse hoy |
 | Ningún `.roadmap.json` tuvo `actuals` con datos en toda la historia de `main`, desde el 2026-08-06 | La práctica de medir nunca empezó, así que la hipótesis de que se abandonó no tiene sustento |
 | Ni la entrega, ni la cola, ni el tren escriben `actuals` | No existe ningún camino automático que los complete |
 | Los transcripts de Claude Code traen marca de tiempo, sesión, rama de git y uso de tokens | La ventana de contexto se puede atribuir por rama sin leer contenido |
@@ -46,7 +46,7 @@ Hechos comprobados al preparar esta propuesta, que condicionan el plan:
 | Cowork guarda sesiones locales en JSON | Su formato no está verificado |
 | El monitor de escasez reconstruye minutos por corrida con la API, y cada corrida trae su rama | La atribución de minutos es factible, pero el gasto se concentra en los trenes, que agrupan varias ramas |
 | El comando `/tool` aplica el Scoring Skill | Code-mode y el gateway se pueden evaluar sin herramienta nueva |
-| La idea [`clarificacion`](../../../../ideas/clarificacion/README.md) midió contexto y propone un script de auditoría con serie temporal | Se superpone con la asesina 1 y con la 3 |
+| La idea `clarificacion` (precursor privado, `ideas/clarificacion/README.md` en `4742bb99`) midió contexto y propone un script de auditoría con serie temporal | Se superpone con la asesina 1 y con la 3 |
 
 Números de los transcripts de Claude Code de blends:
 
@@ -69,7 +69,7 @@ no necesita instrumentos nuevos. F3 y F4 esperan a F1, porque necesitan sus dato
 | Instrumento | Qué mide | Fuente |
 |---|---|---|
 | Contexto | Tokens de entrada, salida y caché por rama y por sesión, como serie diaria | Metadatos de los transcripts de Claude Code |
-| Minutos | Minutos facturables por rama, con el método de [`ci-cd.md`](../../../docs/standards/ci-cd.md): redondeo hacia arriba por job, con mínimo de un minuto | API de corridas y jobs de GitHub, desde local |
+| Minutos | Minutos facturables por rama, con el método de `ci-cd.md` (precursor privado, `vc/docs/standards/ci-cd.md` en `4742bb99`): redondeo hacia arriba por job, con mínimo de un minuto | API de corridas y jobs de GitHub, desde local |
 | Atención | Turnos humanos y ventanas de actividad por rama | Marcas de tiempo de los transcripts, sin las tareas programadas |
 | Prueba de formato | Si Codex y Cowork exponen tokens, marca de tiempo y rama | Bases SQLite de Codex y JSON de Cowork |
 

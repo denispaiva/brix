@@ -21,7 +21,7 @@ La serie sale de [`scripts/kpi-history.mjs`](../../scripts/kpi-history.mjs),
 que recorre la historia first-parent de `main` y cuenta los entregables de
 todos los roadmaps, sin el de ejemplo. Dos corridas sobre `main` en `60e5c57`
 dan la misma serie, versionada en
-[`data/kpi-history/2026-09-13.json`](../../data/kpi-history/2026-09-13.json).
+`data/kpi-history/2026-09-13.json` (precursor privado, `vc/brix/data/kpi-history/2026-09-13.json` en `4742bb99`).
 
 | Hecho | Valor |
 |---|---|
@@ -76,7 +76,7 @@ Aunque hubiera productor, no podría completar `actuals` entero por sí mismo.
 
 ### 3. La regla de aceptación convirtió la ausencia en estancamiento
 
-[`roadmap/build.mjs`](../../../../roadmap/build.mjs) rechaza un entregable
+`roadmap/build.mjs` (precursor privado, `roadmap/build.mjs` en `4742bb99`) rechaza un entregable
 `accepted` que no esté medido, y el job de gobernanza del CI lo corre en cada
 PR. Como nada mide, nada puede aceptarse.
 

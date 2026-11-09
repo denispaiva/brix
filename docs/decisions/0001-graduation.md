@@ -5,23 +5,23 @@
 - Estado: aceptada
 - Convocatoria: el PO convocó el gate el 2026-09-13, seis días antes del
   vencimiento del presupuesto de exploración, el 2026-09-19. Respondió en sesión
-  las preguntas del [expediente de insumos](../../../../ideas/brix/gate-2026-09-19-insumos.md).
+  las preguntas del expediente de insumos (precursor privado, `ideas/brix/gate-2026-09-19-insumos.md` en `4742bb99`).
   Convocar antes del vencimiento tiene el precedente de Melquisedec.
 
 ## Veredicto
 
 **Graduada.**
 
-Rige la lectura del [estándar de ciclo de vida](../../../docs/standards/idea-lifecycle.md):
+Rige la lectura del estándar de ciclo de vida (precursor privado, `vc/docs/standards/idea-lifecycle.md` en `4742bb99`):
 nace `vc/brix/` con scaffolding de gobernanza. El PO la eligió entre cuatro
 lecturas que el portfolio sostenía en paralelo:
 
 | Lectura | Qué hacía nacer | Estado tras este registro |
 |---|---|---|
 | Estándar de ciclo de vida | `vc/brix/` con scaffolding de gobernanza | **Rige** |
-| [Ficha de la idea](../../../../ideas/brix/README.md) | Cambios de estándar y tooling en `vc/tools/` | No rige |
+| Ficha de la idea (precursor privado, `ideas/brix/README.md` en `4742bb99`) | Cambios de estándar y tooling en `vc/tools/` | No rige |
 | `SPEC.md` de la idea | Un PR de estándares y tooling dentro de blends | No rige |
-| [Protocolo del Gate](../../../tooling/governance/gate-protocol.md) | El código inyectado en `denispaiva/brix` | No rige |
+| Protocolo del Gate (precursor privado, `vc/tooling/governance/gate-protocol.md` en `4742bb99`) | El código inyectado en `denispaiva/brix` | No rige |
 
 ## Motivo
 
@@ -67,9 +67,9 @@ usados de 18,00 en el ciclo, y 20 entradas en la cola de merge.
 |---|---|
 | Código de `vc/brix` y espejo | `vc/brix` entra a `main` por el tren y sigue activo. `denispaiva/brix` sigue como espejo privado de solo lectura, sincronizado desde blends |
 | Workflow `.github/workflows/ci.yml` de la raíz de blends | Se elimina antes del tren |
-| Alcance de ramas | Regla `project-brix` en [`branch-scopes.json`](../../../tooling/branch-scopes.json): prefijos `feat`, `fix`, `docs`, `chore`, `hotfix` y `experiment` con slug `brix`, sobre `vc/brix/**` e `ideas/brix/**` |
-| Consumo de la API de Gemini | Línea en el [ledger FinOps](../../../finops/billing-ledger.json) dentro del free tier, con tope de excedente en cero |
-| Métodos de scoring | La matriz del CLI se alinea a la [política vigente del Scoring Skill](../../../tooling/scoring-policy.json), versión 1.6.0 |
+| Alcance de ramas | Regla `project-brix` en `branch-scopes.json` (precursor privado, `vc/tooling/branch-scopes.json` en `4742bb99`): prefijos `feat`, `fix`, `docs`, `chore`, `hotfix` y `experiment` con slug `brix`, sobre `vc/brix/**` e `ideas/brix/**` |
+| Consumo de la API de Gemini | Línea en el ledger FinOps (precursor privado, `vc/finops/billing-ledger.json` en `4742bb99`) dentro del free tier, con tope de excedente en cero |
+| Métodos de scoring | La matriz del CLI se alinea a la política vigente del Scoring Skill (precursor privado, `vc/tooling/scoring-policy.json` en `4742bb99`), versión 1.6.0 |
 | Preguntas sin responder | Son la Fase 0 del proyecto: se responden antes de sumar funcionalidad nueva al CLI |
 | Horas del PO | Unas 5 horas por semana |
 
@@ -93,10 +93,10 @@ Decisiones que se ejecutan después, cada una en su rama:
 
 ## Evidencia de la exploración
 
-- [`ideas/brix/README.md`](../../../../ideas/brix/README.md): ficha, asesinas, presupuesto y respuestas del PO del 2026-09-10, que la ficha declara hipótesis de trabajo.
-- [`ideas/brix/gate-2026-09-19-insumos.md`](../../../../ideas/brix/gate-2026-09-19-insumos.md): expediente con la evidencia verificada contra su fuente al 2026-09-13, y los datos buscados y no encontrados.
-- [`ideas/brix/consejo-2026-09-10.md`](../../../../ideas/brix/consejo-2026-09-10.md) y su segunda corrida: opinión de asesores, no evidencia.
-- [`docs/lifecycle/decoupling-brix.md`](../../../../docs/lifecycle/decoupling-brix.md): bitácora del desacople técnico y de la estrategia de espejo.
+- `ideas/brix/README.md` (precursor privado, `ideas/brix/README.md` en `4742bb99`): ficha, asesinas, presupuesto y respuestas del PO del 2026-09-10, que la ficha declara hipótesis de trabajo.
+- `ideas/brix/gate-2026-09-19-insumos.md` (precursor privado, `ideas/brix/gate-2026-09-19-insumos.md` en `4742bb99`): expediente con la evidencia verificada contra su fuente al 2026-09-13, y los datos buscados y no encontrados.
+- `ideas/brix/consejo-2026-09-10.md` (precursor privado, `ideas/brix/consejo-2026-09-10.md` en `4742bb99`) y su segunda corrida: opinión de asesores, no evidencia.
+- `docs/lifecycle/decoupling-brix.md` (precursor privado, `docs/lifecycle/decoupling-brix.md` en `4742bb99`): bitácora del desacople técnico y de la estrategia de espejo.
 
 ## Riesgo abierto que sobrevive a la graduación
 

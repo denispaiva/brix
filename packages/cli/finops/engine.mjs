@@ -318,13 +318,22 @@ export function aggregatePortfolio(entries) {
   return { summary: { ...summary, alerts }, status };
 }
 
-const NON_PROJECT_DIRS = new Set([
-  'docs',
-  'finops',
-  'tooling',
-  'tools',
-  'framework',
-]);
+// Carpetas del directorio de portfolio que nunca son proyectos. `framework` no
+// está acá: es convención de una instancia y se pasa con `excludeDirs`.
+const NON_PROJECT_DIRS = new Set(['docs', 'finops', 'tooling', 'tools']);
+
+function resolvePortfolio(cwd, options) {
+  const portfolioDir = options?.portfolioDir;
+  if (!portfolioDir) {
+    throw new Error(
+      'discoverLedgers: falta options.portfolioDir, la carpeta del portfolio relativa al repo (por ejemplo "vc").',
+    );
+  }
+  return {
+    dir: path.join(cwd, portfolioDir),
+    exclude: new Set(options.excludeDirs ?? []),
+  };
+}
 
 async function pathExists(candidate) {
   try {
@@ -336,14 +345,14 @@ async function pathExists(candidate) {
 }
 
 /**
- * Descubre el ledger compartido de blends y el de cada proyecto bajo vc/*.
- * Un proyecto es un directorio con `.roadmap.json` propio. vc/framework SÍ tiene
- * .roadmap.json pero se excluye siempre — su costo ya es el ledger compartido
- * (ver registro 0004). vc/docs, vc/finops, vc/tooling, vc/tools no tienen
- * .roadmap.json, así que ya quedan afuera por ese criterio.
+ * Descubre el ledger compartido y el de cada proyecto bajo `<portfolioDir>/*`.
+ * Un proyecto es un directorio con `.roadmap.json` propio. La carpeta del
+ * portfolio la fija quien llama (`options.portfolioDir`), porque el layout es de
+ * la instancia, no de Brix. `options.excludeDirs` saca carpetas que tienen
+ * `.roadmap.json` pero cuyo costo ya está en el ledger compartido (registro 0004).
  */
-export async function discoverLedgers(cwd) {
-  const vcDir = path.join(cwd, 'vc');
+export async function discoverLedgers(cwd, options) {
+  const { dir: vcDir, exclude } = resolvePortfolio(cwd, options);
   const shared = path.join(vcDir, 'finops', 'billing-ledger.json');
   const sharedExists = await pathExists(shared);
 
@@ -351,7 +360,7 @@ export async function discoverLedgers(cwd) {
   const projects = [];
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
-    if (NON_PROJECT_DIRS.has(entry.name)) continue;
+    if (NON_PROJECT_DIRS.has(entry.name) || exclude.has(entry.name)) continue;
     const roadmapPath = path.join(vcDir, entry.name, '.roadmap.json');
     if (!(await pathExists(roadmapPath))) continue;
     const ledgerPath = path.join(
@@ -371,18 +380,19 @@ export async function discoverLedgers(cwd) {
 
 /**
  * Orquesta discoverLedgers + validateLedger + aggregatePortfolio sobre el repo real.
- * El ledger compartido (vc/finops/) valida con requireCoreProviders: true; cualquier
+ * El ledger compartido (<portfolioDir>/finops/) valida con requireCoreProviders: true; cualquier
  * ledger de proyecto, con false. Un proyecto sin finops/billing-ledger.json es un
  * error de validación, no se saltea.
  */
-export async function runPortfolioValidation(cwd) {
-  const { shared, projects } = await discoverLedgers(cwd);
+export async function runPortfolioValidation(cwd, options) {
+  const { shared, projects } = await discoverLedgers(cwd, options);
+  const portfolioDir = options.portfolioDir;
   const errors = [];
   const validated = [];
 
   if (!shared) {
     errors.push(
-      'vc/finops/billing-ledger.json: no existe — el ledger compartido es obligatorio.',
+      `${portfolioDir}/finops/billing-ledger.json: no existe — el ledger compartido es obligatorio.`,
     );
   } else {
     const label = path.relative(cwd, shared);
@@ -397,7 +407,7 @@ export async function runPortfolioValidation(cwd) {
   for (const { project, path: ledgerPath } of projects) {
     if (!ledgerPath) {
       errors.push(
-        `vc/${project}/finops/billing-ledger.json: falta — todo proyecto necesita su carpeta finops/.`,
+        `${portfolioDir}/${project}/finops/billing-ledger.json: falta — todo proyecto necesita su carpeta finops/.`,
       );
       continue;
     }
