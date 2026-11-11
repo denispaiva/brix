@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Fuente canónica en Brix desde 2026-11-11. Viene de vc/docs/standards/subfactor-evidence.schema.json del precursor (denispaiva/blends-precursor, a39566cb), con minLength en id y rationale y score numérico cuando availability es available, que el espejo lib/subfactor-contract.mjs ya exigía. Paridad: tests/scoring/subfactor-schema-parity.test.mjs.",
+  "title": "Contrato de subfactor de scoring de fiabilidad",
+  "type": "object",
+  "required": ["id", "availability"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "availability": { "enum": ["available", "unavailable"] },
+    "score": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "method": { "enum": ["metric", "rubric"] },
+    "assessor": {
+      "type": "object",
+      "properties": {
+        "type": { "enum": ["model", "human"] },
+        "version": { "type": "string" },
+        "promptVersion": { "type": "string" }
+      }
+    },
+    "rationale": { "type": "string", "minLength": 1 },
+    "evidenceRefs": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "availability": { "const": "available" } } },
+      "then": {
+        "required": ["score", "method"],
+        "properties": { "score": { "type": "number" } }
+      }
+    },
+    {
+      "if": { "properties": { "method": { "const": "rubric" } }, "required": ["method"] },
+      "then": { "required": ["rationale", "evidenceRefs", "assessor"] }
+    }
+  ]
+}

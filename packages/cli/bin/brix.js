@@ -54,6 +54,14 @@ if (command === 'tool' && subCommand === 'score') {
     cwd: process.cwd(),
   });
   if (code) process.exit(code);
+} else if (command === 'finops') {
+  // Motor de FinOps (registro 0004). Como `seed`, toma la cola de argv en crudo.
+  const { runFinopsCli } = await import('../finops/engine.mjs');
+  const code = await runFinopsCli(process.argv.slice(3), {
+    cwd: process.cwd(),
+    config,
+  });
+  if (code) process.exit(code);
 } else {
   console.log(`
 🔨 Brix CLI — Vibe Coding Governance OS (v0.1.0)
@@ -76,6 +84,10 @@ Comandos disponibles:
   brix ci                  Genera workflows de GitHub Actions (.github/workflows/ci.yml)
       --watch <globs>        Rutas que disparan el workflow, separadas por coma
       --entrypoint <path>    Ruta al binario de brix dentro del repo destino
+  brix finops validate --portfolio <dir>   Valida el ledger compartido y el de cada proyecto
+      --exclude <a,b>        Carpetas con .roadmap.json cuyo costo ya está en el ledger compartido
+      (sin --portfolio, usa finops.portfolioDir y finops.excludeDirs de brix.config.json)
+  brix finops validate <ledger.json>   Valida un solo ledger (--shared exige los providers obligatorios)
   brix seed run <escenario> --target <target> --driver <ruta>   Siembra un escenario (emulador autónomo; dev conducido)
       --seed <n> --cmd-dir <dir> --keep-going --realtime --max-wait <s> --dry-run
   brix seed validate <escenario> [--target <target> --driver <ruta>]   Valida el escenario contra esquema y driver

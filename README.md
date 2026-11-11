@@ -70,6 +70,8 @@ npm install --global ./packages/cli
 | `brix idea <archivo.md>`                                                    | Convierte notas informales en un `SPEC.md` ejecutable.                                       |
 | `brix graduate [path]`                                                      | Extrae una subcarpeta con `git subtree split` a una rama lista para empujar a un repo nuevo. |
 | `brix ci`                                                                   | Genera `.github/workflows/ci.yml`.                                                           |
+| `brix finops validate --portfolio <dir>`                                    | Valida el ledger FinOps compartido y el de cada proyecto del portfolio, y suma sus totales.  |
+| `brix finops validate <ledger.json>`                                        | Valida un solo ledger FinOps.                                                                |
 | `brix seed run <escenario> --target <target> --driver <ruta>`               | Siembra un escenario (emulador autónomo; dev conducido) y deja un manifiesto de la corrida.  |
 | `brix seed validate <escenario> [--target <target> --driver <ruta>]`        | Valida el escenario contra el esquema y, con driver, contra el contrato del target.          |
 | `brix seed clean --run <id> --driver <ruta> --target <target>`              | Borra solo las raíces del manifiesto de esa corrida.                                         |
@@ -87,6 +89,9 @@ npm install --global ./packages/cli
 | `tool score *`        | `--policy / --output-dir / --narrative-doc`   | Sobrescriben lo que `brix.config.json` declare para esta invocación. |
 | `idea`                | `--outDir <dir>`                              | Dónde escribir `SPEC.md`. Por defecto, junto al archivo de entrada.  |
 | `idea`                | `--org <cuenta>`                              | Cuenta sugerida para el repo de graduación dentro de la spec.        |
+| `finops validate`     | `--portfolio <dir>`                           | Carpeta del portfolio. Sin el flag, `finops.portfolioDir` de `brix.config.json`. |
+| `finops validate`     | `--exclude <a,b>`                             | Carpetas con `.roadmap.json` cuyo costo ya está en el ledger compartido. |
+| `finops validate`     | `--shared`                                    | Con un solo ledger: exige los providers obligatorios del compartido. |
 | `graduate`            | `--branch <nombre>`                           | Rama de export. Por defecto, `graduation-export`.                    |
 | `graduate`            | `--remote <git-url>`                          | Repo destino que aparece en la instrucción de push.                  |
 | `ci`                  | `--watch <globs>`                             | Rutas que disparan el workflow, separadas por coma.                  |
