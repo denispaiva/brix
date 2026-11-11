@@ -65,7 +65,7 @@ La capacidad escribe solo en el destino declarado. No registra la idea en un por
 
 ## Relación con el consejo
 
-El [flujo de Blends](https://github.com/denispaiva/vcx/blob/main/blends/docs/idea-intake.md) recibe el OK humano, informa el envío y consume `brix council` o `/council` con el documento Markdown. Esa capacidad de Brix devuelve un reporte asociado a la revisión de entrada. La aceptación del reporte y el ingreso son decisiones posteriores del humano, no resultados de Brix.
+El [flujo de Blends](https://github.com/denispaiva/blends/blob/main/docs/idea-intake.md) recibe el OK humano, informa el envío y consume `brix council` o `/council` con el documento Markdown. Esa capacidad de Brix devuelve un reporte asociado a la revisión de entrada. La aceptación del reporte y el ingreso son decisiones posteriores del humano, no resultados de Brix.
 
 El instrumento de consejo se ofrece desde Brix; Blends conserva la coordinación del proceso. Se mantendrán trazabilidad, límites y controles de repetición al diseñar su adaptación por archivo. El método existente no se modifica ni se extrae en esta etapa documental.
 

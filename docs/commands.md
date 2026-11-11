@@ -51,7 +51,7 @@ Una ruta con espacios conserva la misma regla de entrada entre adaptadores. La s
 
 Al completar `/idea`, se presenta el Markdown al humano y se explica que, con su OK y dentro del alcance autorizado, se enviará al consejo. La ayuda de `/council` puede ofrecer ese mismo documento para evitar repetir una ruta; la llamada usa su revisión autorizada.
 
-Al completar `/council`, se entrega el reporte Markdown y se pide la decisión de ingreso según el [flujo](https://github.com/denispaiva/vcx/blob/main/blends/docs/idea-intake.md). El comando no registra una idea, no cambia el documento sin permiso y no sustituye la decisión humana.
+Al completar `/council`, se entrega el reporte Markdown y se pide la decisión de ingreso según el [flujo](https://github.com/denispaiva/blends/blob/main/docs/idea-intake.md). El comando no registra una idea, no cambia el documento sin permiso y no sustituye la decisión humana.
 
 Los contratos de resultado de preparación se detallan en [preparación de ideas](idea-intake.md); la asesoría conserva preguntas, perspectivas, revisiones y límites explícitos. La selección interactiva de un parámetro no altera la semántica de esos resultados.
 

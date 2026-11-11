@@ -32,7 +32,7 @@ La recomendación de escenario se identifica como propuesta. No se requiere cerr
 
 ## Relación con FinOps
 
-La [etapa de Blends](https://github.com/denispaiva/vcx/blob/main/blends/docs/architecture-and-finops.md) aplica la [plantilla FinOps](https://github.com/denispaiva/cellar/blob/main/templates/finops/README.md) sobre este modelo. Cada línea de estimación referencia un componente o actividad, una revisión del modelo y los supuestos de su escenario.
+La [etapa de Blends](https://github.com/denispaiva/blends/blob/main/docs/architecture-and-finops.md) aplica la [plantilla FinOps](https://github.com/denispaiva/cellar/blob/main/templates/finops/README.md) sobre este modelo. Cada línea de estimación referencia un componente o actividad, una revisión del modelo y los supuestos de su escenario.
 
 Los cálculos y validaciones reutilizables pertenecen a Brix; la política de presupuesto y las decisiones humanas se coordinan en Blends. La instancia de Cellar custodia modelo, documento FinOps, fuentes y decisiones. El formato documental no duplica el contrato de un motor de cálculo o de un ledger.
 
