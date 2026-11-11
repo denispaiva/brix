@@ -1,5 +1,6 @@
 import { readdir, access, readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { parseFlags } from '../src/lib/args.js';
 
 function nearlyEqual(first, second, tolerance = 0.01) {
   return Math.abs(Number(first) - Number(second)) <= tolerance;
@@ -422,4 +423,100 @@ export async function runPortfolioValidation(cwd, options) {
 
   const { summary, status } = aggregatePortfolio(validated);
   return { errors, summary, status };
+}
+
+// Las sumas de montos arrastran ruido de punto flotante (110.03699999999999):
+// se redondean solo al mostrarlas, a milésimos para no esconder centavos parciales.
+const usd = (amount) => Math.round(Number(amount) * 1000) / 1000;
+
+const FINOPS_USAGE = `uso:
+  brix finops validate --portfolio <dir> [--exclude a,b]   Todos los ledgers del portfolio
+  brix finops validate <ledger.json> [--shared]           Un solo ledger (--shared exige los providers obligatorios)`;
+
+/**
+ * Adaptador de línea de comandos del motor (`brix finops ...`). Delgado: solo lee
+ * argumentos y archivos, delega en validateLedger/runPortfolioValidation y
+ * traduce el resultado a mensajes y código de salida. La carpeta del portfolio
+ * sale de --portfolio o de finops.portfolioDir en brix.config.json, porque el
+ * layout es de la instancia. Devuelve 0 si es válido, 1 si hay errores de
+ * validación y 2 si el uso o la lectura fallan.
+ */
+export async function runFinopsCli(
+  argv,
+  {
+    cwd = process.cwd(),
+    config = {},
+    stdout = console.log,
+    stderr = console.error,
+  } = {},
+) {
+  const { flags, positional } = parseFlags(argv);
+  const [sub, ledgerArgument] = positional;
+  if (sub !== 'validate') {
+    stderr(FINOPS_USAGE);
+    return 2;
+  }
+
+  if (ledgerArgument) {
+    const ledgerPath = path.resolve(cwd, ledgerArgument);
+    let ledger;
+    try {
+      ledger = JSON.parse(await readFile(ledgerPath, 'utf8'));
+    } catch (error) {
+      stderr(`No se pudo leer ${ledgerArgument}: ${error.message}`);
+      return 2;
+    }
+    const { errors, summary } = validateLedger(ledger, {
+      requireCoreProviders: flags.shared === true,
+    });
+    if (errors.length) {
+      stderr(`Billing ledger inválido: ${errors.length} problema(s).`);
+      for (const error of errors) stderr(`- ${error}`);
+      return 1;
+    }
+    if (summary.cloudAlert)
+      stderr(
+        `⚠ Alerta cloud: el billing de cloud (US$ ${usd(Math.max(summary.cloudBillingActualUsd, summary.cloudBillingForecastUsd))}) supera el umbral de US$ ${usd(summary.cloudBillingAlertUsd)}/mes.`,
+      );
+    stdout(
+      `Billing ledger válido: ${path.relative(cwd, ledgerPath)} · status ${summary.status} · cloud US$ ${usd(summary.cloudBillingActualUsd)} de US$ ${usd(summary.cloudBillingAlertUsd)}/mes · ${summary.pendingInputCount} input(s) pendientes.`,
+    );
+    return 0;
+  }
+
+  const portfolioDir =
+    typeof flags.portfolio === 'string'
+      ? flags.portfolio
+      : config.finops?.portfolioDir;
+  if (!portfolioDir) {
+    stderr(
+      'Falta la carpeta del portfolio: pasá --portfolio <dir> o declarala en finops.portfolioDir de brix.config.json.',
+    );
+    stderr(FINOPS_USAGE);
+    return 2;
+  }
+  const excludeDirs =
+    typeof flags.exclude === 'string'
+      ? flags.exclude.split(',').filter(Boolean)
+      : (config.finops?.excludeDirs ?? []);
+
+  let result;
+  try {
+    result = await runPortfolioValidation(cwd, { portfolioDir, excludeDirs });
+  } catch (error) {
+    stderr(`No se pudo validar el portfolio ${portfolioDir}: ${error.message}`);
+    return 2;
+  }
+  const { errors, summary, status } = result;
+  if (errors.length) {
+    stderr(`Portfolio FinOps inválido: ${errors.length} problema(s).`);
+    for (const error of errors) stderr(`- ${error}`);
+    return 1;
+  }
+  for (const label of summary.alerts ?? [])
+    stderr(`⚠ Alerta cloud en ${label}: el billing supera el umbral configurado.`);
+  stdout(
+    `Portfolio FinOps válido · status ${status} · budget total US$ ${usd(summary.totalBudgetUsd)} · actual US$ ${usd(summary.totalActualUsd)} · ${summary.pendingInputCount} input(s) pendientes.`,
+  );
+  return 0;
 }
