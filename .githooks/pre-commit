@@ -1,0 +1,22 @@
+#!/bin/sh
+# Compuerta de secretos del repositorio brix: Betterleaks 2.0.0-rc.1 sobre el índice. Falla cerrado.
+# Se deja GIT_INDEX_FILE: en `git commit -a` apunta al índice temporal que se commitea.
+# Diseño y procedimiento (en denispaiva/vcx): docs/superpowers/specs/2026-11-02-secret-detection-strategy-design.md §4.1.
+unset GIT_DIR GIT_WORK_TREE GIT_PREFIX
+PATH="$HOME/.local/bin:$PATH"   # la release verificada se instala ahí; los hooks no cargan el perfil del shell
+ROOT="$(git rev-parse --show-toplevel)"
+V=2.0.0-rc.1
+command -v betterleaks >/dev/null 2>&1 || { echo "✖ betterleaks no está instalado; ver docs/superpowers/specs/2026-11-02-secret-detection-strategy-design.md §4.1" >&2; exit 1; }
+[ "$(betterleaks version 2>/dev/null | head -n 1)" = "$V" ] || { echo "✖ betterleaks no es la versión $V fijada por la compuerta" >&2; exit 1; }
+[ -f "$ROOT/.betterleaks.toml" ] || { echo "✖ falta .betterleaks.toml en la raíz: v2 no lo descubre solo" >&2; exit 1; }
+IGNORE=""
+[ -f "$ROOT/.betterleaksignore" ] && IGNORE="--ignore-file $ROOT/.betterleaksignore"
+# shellcheck disable=SC2086
+betterleaks git "$ROOT" --staged --config "$ROOT/.betterleaks.toml" $IGNORE \
+  --redact --no-banner --validate=false --analyze=false --exit-code 3
+rc=$?
+case $rc in
+  0) exit 0 ;;
+  3) echo "✖ Commit bloqueado: posible secreto en el índice. Quitarlo, rotarlo si ya se usó; falso positivo: huella en .betterleaksignore con justificación." >&2; exit 1 ;;
+  *) echo "✖ Commit bloqueado: betterleaks terminó con error $rc, no con un resultado limpio." >&2; exit 1 ;;
+esac

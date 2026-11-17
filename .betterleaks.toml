@@ -1,0 +1,7 @@
+# Compuerta de secretos del repositorio brix: Betterleaks 2.0.0-rc.1. Extiende las reglas por defecto.
+# Las excepciones por valor van en .betterleaksignore con su huella y justificación; no se agregan
+# allowlists por ruta ni se desactivan reglas sin registrar el motivo en este archivo.
+title = "brix — Betterleaks"
+
+[extend]
+useDefault = true
