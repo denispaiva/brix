@@ -173,6 +173,13 @@ function buildConflictingPendingRecord(
 }
 
 const SNAPSHOT_MAX_AGE_DAYS = 180;
+// Estados del collector que dejan community unavailable aunque la fuente sea de GitHub.
+// `not_applicable` (la URL no es de github.com) no está: ahí no se espera comunidad.
+const MISSING_COMMUNITY_STATES = new Set([
+  'rate_limited',
+  'unavailable',
+  'not_found',
+]);
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 /**
@@ -241,6 +248,11 @@ function buildEvaluationRefs(toolingRoot, candidateId, cwd) {
  * `unavailable` también intenta ese mismo reuso antes de rendirse. El snapshot resuelto
  * (fresco o reutilizado) se escribe en `input.communitySnapshot` — reemplazando lo que el
  * autor del evidence input haya puesto ahí — para que el caller lo persista tal cual.
+ *
+ * Si el collector responde `rate_limited`, `unavailable` o `not_found` y no hay snapshot
+ * para reutilizar, community queda unavailable y `communityEvidenceNote` lo dice. Con
+ * `options.requireCommunity`, en vez de eso lanza un Error (el CLI lo activa salvo
+ * --offline o --allow-missing-community).
  *
  * `options.refs`, si viene, son las referencias legibles (buildEvaluationRefs) que se
  * persisten en el registro; por defecto, las mismas que buildEvaluationRefs da
@@ -313,6 +325,20 @@ export async function runEvaluation(input, policy, options = {}) {
         );
         if (resolvedSnapshot) {
           communityEvidenceNote = `Comunidad: snapshot del ${isoDateOnly(resolvedSnapshot.observedAt)} reutilizado por rate limit o indisponibilidad del collector.`;
+        }
+      }
+      // Sin snapshot fresco ni reutilizable, community queda unavailable. Antes eso pasaba
+      // en silencio: con el cupo anónimo de la API agotado, el puntaje y la recomendación
+      // cambiaban sin ninguna marca en el registro. Ahora queda la nota y, si el caller
+      // exige comunidad (el CLI lo hace salvo --offline o --allow-missing-community), falla.
+      if (!resolvedSnapshot && MISSING_COMMUNITY_STATES.has(evidence.state)) {
+        communityEvidenceNote = `Comunidad: el collector respondió "${evidence.state}" y no hay snapshot vigente para reutilizar; queda unavailable.`;
+        if (options.requireCommunity) {
+          throw new Error(
+            `comunidad no disponible: el collector respondió "${evidence.state}" y no hay snapshot vigente para reutilizar. ` +
+              'Reintentar con GITHUB_TOKEN (sin token, el cupo de la API es de 60 consultas por hora), ' +
+              'usar --offline para reutilizar el snapshot vigente, o --allow-missing-community para seguir sin comunidad a sabiendas',
+          );
         }
       }
     }
@@ -816,11 +842,13 @@ export async function runEvaluateCommand(argv, { cwd } = {}) {
       input.candidate.id,
       resolveRoots(flags, { cwd }).cwd,
     );
+    const offline = Boolean(flags.offline);
     const record = await runEvaluation(input, policy, {
       now,
-      offline: Boolean(flags.offline),
+      offline,
       currentEvidenceInput,
       refs,
+      requireCommunity: !offline && !flags['allow-missing-community'],
     });
     const report = renderReport(record, input);
 

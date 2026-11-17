@@ -84,6 +84,7 @@ npm install --global ./packages/cli
 | `tool score evaluate` | `--input <archivo>`                           | Archivo de evidencia a evaluar (obligatorio).                        |
 | `tool score evaluate` | `--dry-run`                                   | Muestra el reporte sin escribir nada.                                |
 | `tool score evaluate` | `--offline`                                   | Nunca toca la red: reutiliza el snapshot de comunidad vigente.       |
+| `tool score evaluate` | `--allow-missing-community`                   | Sigue aunque la API de GitHub no responda y no haya snapshot para reutilizar. Sin el flag, la evaluación falla en vez de quedar sin comunidad. Con `GITHUB_TOKEN`, el cupo de la API sube de 60 consultas por hora a 5.000. |
 | `tool score decide`   | `--id / --status / --by`                      | Candidato, veredicto y quién decide (los tres obligatorios).         |
 | `tool score decide`   | `--rationale / --review-at / --accepted-risk` | Según lo que el estado exija.                                        |
 | `tool score *`        | `--policy / --output-dir / --narrative-doc`   | Sobrescriben lo que `brix.config.json` declare para esta invocación. |
