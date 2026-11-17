@@ -70,6 +70,8 @@ Comandos disponibles:
   brix tool score evaluate --input <archivo>   Evidencia → score, borrador pending
       --dry-run               Muestra el reporte sin escribir nada
       --offline                Nunca toca la red: reutiliza el snapshot de comunidad vigente
+      --allow-missing-community  Sigue aunque la comunidad no esté disponible
+                               (sin el flag, falla; con GITHUB_TOKEN el cupo es mayor)
   brix tool score decide --id <candidato> --status <estado> --by "<nombre>"
       --rationale/--review-at/--accepted-risk   Según lo que el estado exija
       (score.policyPath/outputDir/narrativeDocPath en brix.config.json fijan dónde
